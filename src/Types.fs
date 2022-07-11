@@ -4,20 +4,11 @@ open System
 open FSharp.Data.UnitSystems.SI.UnitSymbols
 
 module Units =
-    /// an arbitrary unit of measure
-    [<Measure>] type arb
-    
-    let arbToFloat (x: float<arb>) = float x
-    
     let floatToTyped<[<Measure>] 'u> x : float<'u> = LanguagePrimitives.FloatWithMeasure x
     
     let typedToFloat<[<Measure>] 'u> (x: float<'u>) = float x
     
     let typedToTyped<[<Measure>] 'u, [<Measure>] 'v> = typedToFloat<'u> >> floatToTyped<'v>
-    
-    let floatToArb = floatToTyped<arb>
-    
-    let arbToTyped<[<Measure>] 'u> = arbToFloat >> floatToTyped<'u>
 
 type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     with
