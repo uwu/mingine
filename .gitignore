@@ -1,0 +1,9 @@
+# dist
+dist/
+# tooling dirs
+.idea/
+bin/
+obj/
+node_modules/
+# we use pnpm!
+package-lock.json

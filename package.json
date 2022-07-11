@@ -1,0 +1,13 @@
+{
+  "name": "mini-phys",
+  "version": "1.0.0",
+  "description": "A truly mini physics and game engine for the web",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm -rf dist node_modules src/bin src/obj",
+    "build": "dotnet fable src -o dist",
+    "deps": "dotnet tool restore && dotnet femto src"
+  },
+  "author": "Yellowsink",
+  "license": "Unlicense"
+}
