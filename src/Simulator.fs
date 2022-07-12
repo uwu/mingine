@@ -6,14 +6,11 @@ open MiniPhys.Types
 // http://buildnewgames.com/gamephysics/
 
 let calcForces gObj timeStep globalTime =
-    let forces =
-        match gObj.forces with
-        | SingleFCs sfcs -> 
-            sfcs
-            |> List.map (fun (_, f) -> f gObj timeStep globalTime)
-        | BatchFC bfc -> bfc gObj timeStep globalTime
+    match gObj.forces with
+    | BatchFC bfc -> bfc gObj timeStep globalTime
+    | SingleFCs sfcs -> List.map (fun (_, f) -> f gObj timeStep globalTime) sfcs
     
-    List.reduce (+) forces
+    |> List.reduce (+)
 
 let updateObject gObj timeStep globalTime =
     let newPos = gObj.pos + (gObj.velocity * timeStep) + (gObj.accel * 0.5 * (timeStep * timeStep))

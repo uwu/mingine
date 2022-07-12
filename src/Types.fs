@@ -4,11 +4,11 @@ open System
 open FSharp.Data.UnitSystems.SI.UnitSymbols
 
 module Units =
-    let floatToTyped<[<Measure>] 'u> x : float<'u> = LanguagePrimitives.FloatWithMeasure x
+    let inline floatToTyped<[<Measure>] 'u> x : float<'u> = LanguagePrimitives.FloatWithMeasure x
     
-    let typedToFloat<[<Measure>] 'u> (x: float<'u>) = float x
+    let inline typedToFloat<[<Measure>] 'u> (x: float<'u>) = float x
     
-    let typedToTyped<[<Measure>] 'u, [<Measure>] 'v> = typedToFloat<'u> >> floatToTyped<'v>
+    let inline typedToTyped<[<Measure>] 'u, [<Measure>] 'v> = typedToFloat<'u> >> floatToTyped<'v>
 
 type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     with
@@ -72,5 +72,4 @@ and GameObj = {
     velocity: Vec2<m/s>
     accel: Vec2<m/s^2>
     forces: ForceCalculator
-    updateForces: GameObj -> unit
 }
