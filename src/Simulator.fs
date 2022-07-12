@@ -2,7 +2,6 @@ module MiniPhys.Simulator
 
 open MiniPhys.Types
 
-open FSharp.Data.UnitSystems.SI.UnitSymbols
 open MiniPhys.Types.Units
 
 // huge shoutout to
@@ -38,8 +37,9 @@ let updateObjectPos gObj timeStep globalTime =
 let updateObjectRotation gObj timeStep globalTime =
     let newAngle = gObj.angle + (gObj.angularVelocity * timeStep) + (gObj.angularAccel * 0.5 * (timeStep * timeStep))
     
-    let newAccel = (calcTorques {gObj with angle = newAngle} timeStep globalTime) / gObj.momentOfInertia
-                |> typedToTyped // lol i dont know what the hell is going on with these units
+    // need to multiply by 1 radian as radians are dimensionless
+    // hence (N m)/(kg m^2) simplifies down to 1/s^2 not rad/s^2
+    let newAccel = 1.<rad> * (calcTorques {gObj with angle = newAngle} timeStep globalTime) / gObj.momentOfInertia
 
     let avgAccel = (gObj.angularAccel + newAccel) / 2.
     let newVelocity = gObj.angularVelocity + (avgAccel * timeStep)
