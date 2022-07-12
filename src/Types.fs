@@ -8,13 +8,6 @@ open MiniPhys.Types.Units
 type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     with
     
-    member vec.len with get () = // ew
-        let untypedVec = Vec2<'u>.map typedToFloat vec
-        
-        (untypedVec.x ** 2 + untypedVec.y ** 2)
-        |> Math.Sqrt
-        |> floatToTyped<'u>
-    
     /// origin in 2d space
     static member origin = { x = 0.<_>; y = 0.<_> }
     
@@ -54,6 +47,13 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     static member (/) (v, s) = (Vec2<'u>.maps (/)) v s
     static member (/) (s, v) = (Vec2<'u>.smap (/)) s v
     
+    member vec.len with get () = // ew
+        let untypedVec = Vec2<'u>.map typedToFloat vec
+        
+        (untypedVec.x ** 2 + untypedVec.y ** 2)
+        |> Math.Sqrt
+        |> floatToTyped<'u>
+    
     member v.rotate (angle: float<rad>) origin =
         let offset = origin - v
         let noUnitAng = typedToFloat angle
@@ -62,7 +62,12 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
         let yPrime = origin.y + ((offset.x * Math.Sin noUnitAng) - (offset.y * Math.Cos noUnitAng))
         
         { x = xPrime; y = yPrime }
-
+        
+    member v.norm with get () =
+        let len = v.len
+        if (typedToFloat len) = 0.
+        then Vec2.origin
+        else v / len
 
 
 /// A function that calculates a force. It takes the object, time step, and global time.

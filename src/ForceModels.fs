@@ -1,4 +1,4 @@
-module MiniPhys.ForceModellers
+module MiniPhys.ForceModels
 open FSharp.Data.UnitSystems.SI.UnitSymbols
 
 open System
@@ -16,16 +16,19 @@ let spring (springConstant: float<N/m>) restPos gObj (_: float<s>) (_: float<s>)
 
 
 /// Models air resistance - useful for more naturally implementing terminal velocity for example
-let airDrag flowVelocity (density: float<kg/m^3>) (csArea: float<m^2>) (dragCoff: float) gObj (_: float<s>) (_: float<s>) =
+let airDrag flowVelocity (density: float<kg/m^2>) (csArea: float<m>) (dragCoff: float) gObj (_: float<s>) (_: float<s>) =
     let relativeFv = flowVelocity - gObj.velocity
     // Fd=upAc/2
-    0.5 * density * (relativeFv * relativeFv) * dragCoff * csArea
+    let magnitude = 0.5 * density * (relativeFv * relativeFv) * dragCoff * csArea
+    // magnitude pointing in direction of the relativeFv vector
+    // because relativeFv already points against the object's velocity vector 
+    relativeFv.norm * magnitude
 
 /// Models air resistance in still air - see `airDrag`
 let stillAirDrag = airDrag Vec2.origin
 
 /// The air density on earth at 20c and at 101.325kPa
-let earthAirDensity = 1204.<kg/m^3>
+let earthAirDensity = 1204.<kg/m^2>
 
 
 let private rawViscousDamping (startAmpl: Vec2<_>) (decayRate: float<1/s>) (freq: float<Hz>) time =
