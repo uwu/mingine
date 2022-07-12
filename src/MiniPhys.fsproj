@@ -4,6 +4,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Units.fs" />
         <Compile Include="Types.fs" />
         <Compile Include="ForceModels.fs" />
         <Compile Include="Simulator.fs" />

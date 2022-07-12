@@ -2,23 +2,18 @@ namespace MiniPhys.Types
 
 open System
 open FSharp.Data.UnitSystems.SI.UnitSymbols
+open MiniPhys.Types.Units
 
-module Units =
-    let inline floatToTyped<[<Measure>] 'u> x : float<'u> = LanguagePrimitives.FloatWithMeasure x
-    
-    let inline typedToFloat<[<Measure>] 'u> (x: float<'u>) = float x
-    
-    let inline typedToTyped<[<Measure>] 'u, [<Measure>] 'v> = typedToFloat<'u> >> floatToTyped<'v>
-
+// 2d vector with float64 precision. Works with F# units of measure.
 type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     with
     
     member vec.len with get () = // ew
-        let untypedVec = Vec2<'u>.map Units.typedToFloat vec
+        let untypedVec = Vec2<'u>.map typedToFloat vec
         
         (untypedVec.x ** 2 + untypedVec.y ** 2)
         |> Math.Sqrt
-        |> Units.floatToTyped<'u>
+        |> floatToTyped<'u>
     
     /// origin in 2d space
     static member origin = { x = 0.<_>; y = 0.<_> }
@@ -43,16 +38,31 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     static member (+) (v1, v2) = (Vec2<'u>.map2 (+)) v1 v2
     
     static member (-) (v1, v2) =
-        (Vec2<'u>.map Units.typedToFloat v1, Vec2<'u>.map Units.typedToFloat v2)
+        (Vec2<'u>.map typedToFloat v1, Vec2<'u>.map typedToFloat v2)
         ||> (Vec2<'u>.map2 (-))
-        |> Vec2.map Units.floatToTyped<'u>
+        |> Vec2.map floatToTyped<'u>
     
+    // dot product
     static member (*) (v1, v2) = (v1.x * v2.x) + (v1.y * v2.y)
+    
+    // cross product can't really exist in 2d but this gives us the magnitude
+    static member (+*) (v1, v2) = (v1.x * v2.y) - (v1.y * v2.x)
+    
     static member (*) (v, s) = (Vec2<'u>.maps (*)) v s
     static member (*) (s: float<'u>, v: Vec2<'v>) = v * s
     
     static member (/) (v, s) = (Vec2<'u>.maps (/)) v s
     static member (/) (s, v) = (Vec2<'u>.smap (/)) s v
+    
+    member v.rotate (angle: float<rad>) origin =
+        let offset = origin - v
+        let noUnitAng = typedToFloat angle
+        
+        let xPrime = origin.x + ((offset.x * Math.Cos noUnitAng) - (offset.y * Math.Sin noUnitAng))
+        let yPrime = origin.y + ((offset.x * Math.Sin noUnitAng) - (offset.y * Math.Cos noUnitAng))
+        
+        { x = xPrime; y = yPrime }
+
 
 
 /// A function that calculates a force. It takes the object, time step, and global time.
@@ -65,6 +75,16 @@ and ForceCalculator =
     | SingleFCs of (string * SingleForceCalculator) list
     | BatchFC of BatchForceCalculator
 
+/// A function that calculates a torque. It takes the object, time step, and global time.
+and SingleTorqueCalculator = GameObj -> float<s> -> float<s> -> float<N m>
+
+/// A function that calculates all torques. It takes the object, time step, and global time.
+and BatchTorqueCalculator = GameObj -> float<s> -> float<s> -> float<N m> list
+
+and TorqueCalculator =
+    | SingleTCs of (string * SingleTorqueCalculator) list
+    | BatchTC of BatchTorqueCalculator
+
 /// Represents a physics / game object
 and GameObj = {
     pos: Vec2<m>
@@ -72,4 +92,10 @@ and GameObj = {
     velocity: Vec2<m/s>
     accel: Vec2<m/s^2>
     forces: ForceCalculator
+    
+    momentOfInertia: float<kg m^2>
+    angle: float<rad> // theta
+    angularVelocity: float<rad/s> // omega
+    angularAccel: float<rad/s^2> // alpha
+    torques: TorqueCalculator
 }
