@@ -12,11 +12,11 @@ let earthWeight = weight {x = 0.<m/s^2>; y = -9.81<m/s^2>}
 
 
 /// Models a spring force (which wants to come to rest at a fixed position)
-let spring (springConstant: float<N/m>) restPos gObj (_: float<s>) (_: float<s>) = (restPos - gObj.pos) * -springConstant // Fs=-kx
+let spring (springConstant: float<N/m>) restPos gObj (_: float<s>) (_: float<s>) = (restPos - gObj.pos) * springConstant // Fs=kx
 
 
 /// Models air resistance - useful for more naturally implementing terminal velocity for example
-let airDrag flowVelocity (density: float<kg/m^2>) (csArea: float<m>) (dragCoff: float) gObj (_: float<s>) (_: float<s>) =
+let airDrag flowVelocity (density: float<kg/m^3>) (csArea: float<m^2>) (dragCoff: float) gObj (_: float<s>) (_: float<s>) =
     let relativeFv = flowVelocity - gObj.velocity
     // Fd=upAc/2
     let magnitude = 0.5 * density * (relativeFv * relativeFv) * dragCoff * csArea
@@ -28,8 +28,12 @@ let airDrag flowVelocity (density: float<kg/m^2>) (csArea: float<m>) (dragCoff: 
 let stillAirDrag = airDrag Vec2.origin
 
 /// The air density on earth at 20c and at 101.325kPa
-let earthAirDensity = 1204.<kg/m^2>
+let earthAirDensity = 1.204<kg/m^3>
 
+
+/// Not even a physical model, just a really basic damping force
+let simpleDamping (ratio: float) gObj (tStep: float<s>) (_: float<s>) =
+    -gObj.velocity * ratio * gObj.mass / tStep
 
 let private rawViscousDamping (startAmpl: Vec2<_>) (decayRate: float<1/s>) (freq: float<Hz>) time =
     // this should be radians/s but im too lazy to setup units for that so Hz it is

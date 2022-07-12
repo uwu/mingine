@@ -68,6 +68,9 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
         if (typedToFloat len) = 0.
         then Vec2.origin
         else v / len
+    
+    // debugging purposes
+    override v.ToString () = $"(%f{v.x}, %f{v.y})"
 
 
 /// A function that calculates a force. It takes the object, time step, and global time.
