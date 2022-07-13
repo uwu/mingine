@@ -54,15 +54,15 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
         |> Math.Sqrt
         |> floatToTyped<'u>
     
-    member v.rotate (angle: float<rad>) origin =
-        let offset = origin - v
-        let noUnitAng = typedToFloat angle
+    member v.rotate (typedAngle: float<rad>) origin =
+        let offset = v - origin
+        let angle = typedToFloat typedAngle
         
-        let xPrime = origin.x + ((offset.x * Math.Cos noUnitAng) - (offset.y * Math.Sin noUnitAng))
-        let yPrime = origin.y + ((offset.x * Math.Sin noUnitAng) - (offset.y * Math.Cos noUnitAng))
+        let xPrime = origin.x + ((offset.x * Math.Cos angle) - (offset.y * Math.Sin angle))
+        let yPrime = origin.y + ((offset.x * Math.Sin angle) + (offset.y * Math.Cos angle))
         
         { x = xPrime; y = yPrime }
-        
+
     member v.norm with get () =
         let len = v.len
         if (typedToFloat len) = 0.
@@ -73,25 +73,17 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     override v.ToString () = $"(%f{v.x}, %f{v.y})"
 
 
-/// A function that calculates a force. It takes the object, time step, and global time.
-type SingleForceCalculator = GameObj -> float<s> -> float<s> -> Vec2<N>
+type ForceAndTorque = Vec2<N> * float<N m>
 
-/// A function that calculates all forces. It takes the object, time step, and global time.
-and BatchForceCalculator = GameObj -> float<s> -> float<s> -> Vec2<N> list
+/// A function that calculates a force and torque. It takes the object, time step, and global time.
+type SingleForceCalculator = GameObj -> float<s> -> float<s> -> ForceAndTorque
+
+/// A function that calculates all forces and torques. It takes the object, time step, and global time.
+and BatchForceCalculator = GameObj -> float<s> -> float<s> -> ForceAndTorque list
 
 and ForceCalculator =
     | SingleFCs of (string * SingleForceCalculator) list
     | BatchFC of BatchForceCalculator
-
-/// A function that calculates a torque. It takes the object, time step, and global time.
-and SingleTorqueCalculator = GameObj -> float<s> -> float<s> -> float<N m>
-
-/// A function that calculates all torques. It takes the object, time step, and global time.
-and BatchTorqueCalculator = GameObj -> float<s> -> float<s> -> float<N m> list
-
-and TorqueCalculator =
-    | SingleTCs of (string * SingleTorqueCalculator) list
-    | BatchTC of BatchTorqueCalculator
 
 /// Represents a physics / game object
 and GameObj = {
@@ -103,7 +95,6 @@ and GameObj = {
     
     momentOfInertia: float<kg m^2>
     angle: float<rad> // theta
-    angularVelocity: float<rad/s> // omega
-    angularAccel: float<rad/s^2> // alpha
-    torques: TorqueCalculator
+    angVelocity: float<rad/s> // omega
+    angAccel: float<rad/s^2> // alpha
 }

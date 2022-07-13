@@ -49,9 +49,10 @@ setStyle ball
         width = "20px"
         height = "20px"
         border = "1px solid black"
-        borderRadius = "99999px"
+        borderTop = "1px solid red"
+        borderRight = "1px solid red"
+        borderRadius = "99999px 0 99999px 99999px"
         position = "absolute"
-        transform = "translate(-10px, 10px)"
     |}
 
 setStyle springPoint
@@ -81,23 +82,24 @@ let mutable object = {
         "gravity", ForceModels.earthWeight
         
         "ground push force", (fun g ts _ ->
-            if g.pos.y >= 0.<_>
+            (if g.pos.y >= 0.<_>
             then Vec2.origin
             else
-                { x = 0.<_>; y = typedAbs(g.velocity.y) * g.mass / ts + 20.<N> }
+                { x = 0.<_>; y = typedAbs(g.velocity.y) * g.mass / ts + 10.<N> })
+            , 0.<_>
             )
         
-        "tether", ForceModels.spring 6.<N/m> { x = 1.<m>; y = 1.5<m> }
+        "tether", ForceModels.spring 5.<N/m> { x = 1.<m>; y = 1.5<m> } { x = 0.1<m>; y = 0.1<_> }
         "air resistance", ForceModels.stillAirDrag ForceModels.earthAirDensity (Math.PI * 0.1<m> * 0.1<m>) 0.47
         
-        "crude basic damping", ForceModels.simpleDamping 0.01
+        "crude basic damping", ForceModels.simpleDamping 0.25 0.05
     ]
     
-    momentOfInertia = 0.<_>
+    // for a disc rotating, I=MR^2/2
+    momentOfInertia = 0.5 * 0.5<kg> * (0.1<m> * 0.1<m>)
     angle = 0.<_>
-    angularVelocity = 0.<_>
-    angularAccel = 0.<_>
-    torques = SingleTCs []
+    angVelocity = 0.<_>
+    angAccel = 0.<_>
     }
 
 let startTick: float<s> = performance.now() / 1000. |> Units.floatToTyped
@@ -111,8 +113,9 @@ loop
         
        object <- Simulator.updateObjectPos object timeStep globalTick
         
-       ball?style?left <- $"%f{object.pos.x * scale}px"
-       ball?style?bottom <- $"%f{object.pos.y * scale}px"
+       ball?style?left <- $"%f{(object.pos.x - 0.1<_>) * scale}px"
+       ball?style?bottom <- $"%f{(object.pos.y - 0.1<_>) * scale}px"
+       ball?style?transform <- $"rotate(%f{object.angle}rad)"
         
        lastTick <- thisTick
    )

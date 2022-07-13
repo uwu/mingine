@@ -8,6 +8,8 @@ let inline typedToFloat<[<Measure>] 'u> (x: float<'u>) = float x
 
 let inline typedToTyped<[<Measure>] 'u, [<Measure>] 'v> = typedToFloat<'u> >> floatToTyped<'v>
 
+let inline mapFloatTyped<[<Measure>] 'u> f = (typedToFloat<'u> >> f >> floatToTyped<'u>)
+
 [<Measure>] type rad
 [<Measure>] type deg
 
