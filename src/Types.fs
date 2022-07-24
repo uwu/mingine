@@ -73,20 +73,25 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
     override v.ToString () = $"(%f{v.x}, %f{v.y})"
 
 
+type Collider =
+    | CircularCollider of radius: float<m>
+    | RectCollider of size: Vec2<m>
+    | CompositeCollider of Collider * Collider
+
 type ForceAndTorque = Vec2<N> * float<N m>
 
 /// A function that calculates a force and torque. It takes the object, time step, and global time.
-type SingleForceCalculator = GameObj -> float<s> -> float<s> -> ForceAndTorque
+type SingleForceCalculator = PhysicsObj -> float<s> -> float<s> -> ForceAndTorque
 
 /// A function that calculates all forces and torques. It takes the object, time step, and global time.
-and BatchForceCalculator = GameObj -> float<s> -> float<s> -> ForceAndTorque list
+and BatchForceCalculator = PhysicsObj -> float<s> -> float<s> -> ForceAndTorque list
 
 and ForceCalculator =
     | SingleFCs of (string * SingleForceCalculator) list
     | BatchFC of BatchForceCalculator
 
-/// Represents a physics / game object
-and GameObj = {
+/// Represents an object that can have physics simulated on it
+and PhysicsObj = {
     pos: Vec2<m>
     mass: float<kg>
     velocity: Vec2<m/s>
@@ -97,4 +102,24 @@ and GameObj = {
     angle: float<rad> // theta
     angVelocity: float<rad/s> // omega
     angAccel: float<rad/s^2> // alpha
+}
+
+/// Represents a renderable object in the game
+type GameObj = {
+    physicsObj: PhysicsObj
+    layer: int
+    /// the vector of center subtract bottom left - this is used to position objects accurately
+    blOffset: Vec2<m>
+    styles: obj
+    collider: Collider
+}
+
+/// Holds all the game objects in the game and controls the root render div
+type Scene = {
+    scale: float<px/m> // scale of 1 means 1px=1m, scale of 10 means 10px=1m, etc
+    rootStyles: obj
+    objects: GameObj list
+    /// where in the scene should be rendered as the origin
+    /// - for example: when set to (1, 2) then an object at (1, 2) would be rendered as if at (0, 0)
+    renderOffset: Vec2<m>
 }

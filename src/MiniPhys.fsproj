@@ -8,6 +8,7 @@
         <Compile Include="Types.fs" />
         <Compile Include="ForceModels.fs" />
         <Compile Include="Simulator.fs" />
+        <Compile Include="Engine.fs" />
         <Compile Include="MiniPhys.fs" />
     </ItemGroup>
 

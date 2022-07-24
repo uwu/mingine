@@ -68,7 +68,7 @@ setStyle springPoint
 [<Measure>] type px
 let scale = 100.<px/m>
 
-let typedAbs<[<Measure>] 'u> : float<'u> -> float<'u> = Units.typedToFloat >> Math.abs >> Units.floatToTyped 
+let typedAbs = Units.mapFloatTyped Math.abs
 
 // the mutable aspect of this would be handled in-engine but its not implemented yet, this is just temp
 let mutable object = {

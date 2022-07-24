@@ -17,3 +17,5 @@ let degPerRad = 180.<deg/rad> / Math.PI
 
 let radToDeg (r: float<rad>) = r * degPerRad
 let degToRad (d: float<deg>) = d / degPerRad
+
+[<Measure>] type px
