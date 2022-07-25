@@ -1,7 +1,9 @@
 namespace MiniPhys.Types
 
 open System
+open System.Collections.Generic
 open FSharp.Data.UnitSystems.SI.UnitSymbols
+open MiniPhys.Types
 open MiniPhys.Types.Units
 
 // 2d vector with float64 precision. Works with F# units of measure.
@@ -105,6 +107,7 @@ and PhysicsObj = {
 }
 
 /// Represents a renderable object in the game
+[<ReferenceEquality>] // pure pain
 type GameObj = {
     physicsObj: PhysicsObj
     layer: int
@@ -118,8 +121,9 @@ type GameObj = {
 type Scene = {
     scale: float<px/m> // scale of 1 means 1px=1m, scale of 10 means 10px=1m, etc
     rootStyles: obj
-    objects: GameObj list
+    objects: GameObj HashSet // hashset = es set, unlike F# map
     /// where in the scene should be rendered as the origin
     /// - for example: when set to (1, 2) then an object at (1, 2) would be rendered as if at (0, 0)
     renderOffset: Vec2<m>
+    canvasSize: Vec2<m>
 }
