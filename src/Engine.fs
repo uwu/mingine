@@ -8,6 +8,16 @@ open Fable.Core.JsInterop
 open MiniPhys.Types
 open FSharp.Collections
 
+let requiredRootStyles =
+    {|
+        position = "relative"
+    |}
+
+let requiredElementStyles =
+    {|
+        position = "absolute"
+    |}
+
 let inline applyStyles (elem: HTMLElement) (styles: obj) =
     Constructors.Object.assign (elem?style, styles)
     |> ignore
@@ -39,17 +49,30 @@ let updateGameObject scene gObj elem =
         - gObj.blOffset
         - scene.renderOffset
 
+    applyStyles elem requiredElementStyles
+    
     applyStyles
         elem
         {|left = $"{pos.x}px"
           bottom = $"{pos.y}px"
           transform = $"rotate(${gObj.physicsObj.angle}rad)"|}
 
+let renderRoot engine =
+    let elem = Option.get engine.mounted
+    applyStyles elem engine.scene.rootStyles
+    
+    let canvasPxSize = engine.scene.canvasSize * engine.scene.scale
+    applyStyles elem
+        {|
+            width = $"{canvasPxSize.x}px"
+            height = $"{canvasPxSize.y}px"
+        |}
+    
+    applyStyles elem requiredRootStyles
+
 let renderGameObjects engine =
-    engine.scene.objects
-    |> Seq.iter (fun o ->
-        let exists, elem =
-            engine.gObjMountedCache.TryGetValue o
+    for o in engine.scene.objects do
+        let exists = engine.gObjMountedCache.ContainsKey o
 
         if not exists then
             let elem =
@@ -60,15 +83,22 @@ let renderGameObjects engine =
 
             engine.gObjMountedCache[o] <- elem
 
-        updateGameObject engine.scene o elem)
+        updateGameObject engine.scene o engine.gObjMountedCache[o]
 
-    engine.gObjMountedCache
-    |> Seq.iter (fun kv ->
+    for kv in Seq.toArray engine.gObjMountedCache do
         if not (engine.scene.objects.Contains kv.Key) then
             kv.Value.remove ()
-            engine.gObjMountedCache.Remove kv.Key |> ignore)
+            engine.gObjMountedCache.Remove kv.Key |> ignore
 
-let runPhysicsTick engine timeStep = ()
+let runPhysicsTick engine timeStep =
+    let newObjs =
+        engine.scene.objects
+        |> Seq.map (fun o -> { o with physicsObj = Simulator.updateObjectPos o.physicsObj timeStep })
+        |> Seq.toArray
+    
+    engine.scene.objects.Clear()
+    
+    newObjs |> Collections.Array.iter (engine.scene.objects.Add >> ignore)
 
 let createEngine scene =
     // i love hacks
@@ -86,9 +116,7 @@ let createEngine scene =
          gObjMountedCache = Dictionary()
 
          mount =
-             (fun elem ->
-                 this.mounted <- Some elem
-                 applyStyles elem this.scene.rootStyles)
+             (fun elem -> this.mounted <- Some elem)
 
          unmount =
              (fun () ->
@@ -119,8 +147,11 @@ let createEngine scene =
                         if lockPhysicsToRender then
                             let timeStep = tick - this.lastTick
                             this.lastTick <- tick
-                            runPhysicsTick this timeStep
+                            runPhysicsTick this (timeStep / 1000.<_>)
 
+                        renderRoot this
+                        renderGameObjects this
+                        
                         if not cancel then
                             window.requestAnimationFrame renderLoop |> ignore)
 
@@ -136,7 +167,8 @@ let createEngine scene =
                                     let tick = performance.now ()
                                     let timeStep = tick - this.lastTick
                                     this.lastTick <- tick
-                                    runPhysicsTick this timeStep)
+                                    
+                                    runPhysicsTick this (timeStep / 1000.<_>))
                                 (int (1000. / physicsHz))
                         )
 

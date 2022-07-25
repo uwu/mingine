@@ -77,16 +77,16 @@ type Vec2<[<Measure>] 'u> = { x: float<'u>; y: float<'u> }
 
 type Collider =
     | CircularCollider of radius: float<m>
-    | RectCollider of size: Vec2<m>
+    | RectCollider of Vec2<m> * Vec2<m> // bottom left, top right
     | CompositeCollider of Collider * Collider
 
 type ForceAndTorque = Vec2<N> * float<N m>
 
-/// A function that calculates a force and torque. It takes the object, time step, and global time.
-type SingleForceCalculator = PhysicsObj -> float<s> -> float<s> -> ForceAndTorque
+/// A function that calculates a force and torque. It takes the object & time step.
+type SingleForceCalculator = PhysicsObj -> float<s> -> ForceAndTorque
 
-/// A function that calculates all forces and torques. It takes the object, time step, and global time.
-and BatchForceCalculator = PhysicsObj -> float<s> -> float<s> -> ForceAndTorque list
+/// A function that calculates all forces and torques. It takes the object & time step.
+and BatchForceCalculator = PhysicsObj -> float<s> -> ForceAndTorque list
 
 and ForceCalculator =
     | SingleFCs of (string * SingleForceCalculator) list

@@ -18,23 +18,28 @@ let guardFloatInstability<[<Measure>] 'u> =
 let guardForceTorqueInstability (f, t) =
     Vec2.map guardFloatInstability f, guardFloatInstability t
 
-let calcForcesAndTorques gObj timeStep globalTime =
-    match gObj.forces with
-    | BatchFC bfc -> bfc gObj timeStep globalTime
-    | SingleFCs sfcs -> List.map (fun (_, f) -> f gObj timeStep globalTime) sfcs
-    
-    // remove NaN and +-Infinity forces and torques
-    |> List.map guardForceTorqueInstability
-    // sum all forces and torques
-    |> List.reduce (fun (f1, t1) (f2, t2) -> (f1 + f2, t1 + t2))
+let calcForcesAndTorques gObj timeStep =
+    let forcesAndTorques = 
+        match gObj.forces with
+        | BatchFC bfc -> bfc gObj timeStep
+        | SingleFCs sfcs -> List.map (fun (_, f) -> f gObj timeStep) sfcs
+        
+    if forcesAndTorques.IsEmpty
+    then Vec2.origin, 0.<_>
+    else
+        forcesAndTorques
+        // remove NaN and +-Infinity forces and torques
+        |> List.map guardForceTorqueInstability
+        // sum all forces and torques
+        |> List.reduce (fun (f1, t1) (f2, t2) -> (f1 + f2, t1 + t2))
 
-let updateObjectPos gObj timeStep globalTime =
+let updateObjectPos gObj timeStep =
     // update transform from last tick info
     let newPos = gObj.pos + (gObj.velocity * timeStep) + (gObj.accel * 0.5 * (timeStep * timeStep))
     let newAngle = gObj.angle + (gObj.angVelocity * timeStep) + (gObj.angAccel * 0.5 * (timeStep * timeStep))
     
     // calculate forces and torques
-    let force, torque = calcForcesAndTorques {gObj with pos = newPos(*; angle = newAngle*)} timeStep globalTime
+    let force, torque = calcForcesAndTorques {gObj with pos = newPos(*; angle = newAngle*)} timeStep
     
     // update this tick acceleration
     // radians are dimensionless so are not part of the torque nor moment of inertia units, so add them in with *1rad
