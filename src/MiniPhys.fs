@@ -74,8 +74,4 @@ document.body.appendChild root |> ignore
 
 engine.mount root
 
-engine.start (
-    Some
-        {lockPhysicsToRender = Some true
-         physicsHz = None}
-)
+engine.start None
