@@ -32,7 +32,7 @@ type EngineWrap =
      mutable mounted: HTMLElement option
      mutable lastTick: float
      // F# map does not compile to ES map, but Dictionary does.
-     mutable gObjMountedCache: Dictionary<GameObj, HTMLElement>
+     mutable gObjMountedCache: Dictionary<WrappedGObj, HTMLElement>
 
      mutable start: StartOpts option -> unit
      mutable stop: unit -> unit
@@ -71,8 +71,8 @@ let renderRoot engine =
     applyStyles elem requiredRootStyles
 
 let renderGameObjects engine =
-    for o in engine.scene.objects do
-        let exists = engine.gObjMountedCache.ContainsKey o
+    for wrapped in engine.scene.objects do
+        let exists = engine.gObjMountedCache.ContainsKey wrapped
 
         if not exists then
             let elem =
@@ -81,9 +81,9 @@ let renderGameObjects engine =
             (Option.get engine.mounted).appendChild elem
             |> ignore
 
-            engine.gObjMountedCache[o] <- elem
+            engine.gObjMountedCache[wrapped] <- elem
 
-        updateGameObject engine.scene o engine.gObjMountedCache[o]
+        updateGameObject engine.scene wrapped.o engine.gObjMountedCache[wrapped]
 
     for kv in Seq.toArray engine.gObjMountedCache do
         if not (engine.scene.objects.Contains kv.Key) then
@@ -91,15 +91,11 @@ let renderGameObjects engine =
             engine.gObjMountedCache.Remove kv.Key |> ignore
 
 let runPhysicsTick engine timeStep =
-    let newObjs =
-        engine.scene.objects
-        |> Seq.map (fun o -> { o with physicsObj = Simulator.updateObjectPos o.physicsObj timeStep })
-        |> Seq.toArray
+    // EWWWW MUTABILITY
+    for wrapped in engine.scene.objects do
+        let o = wrapped.o
+        wrapped.o <- { o with physicsObj = Simulator.updateObjectPos o.physicsObj timeStep }
     
-    engine.scene.objects.Clear()
-    
-    newObjs |> Collections.Array.iter (engine.scene.objects.Add >> ignore)
-
 let createEngine scene =
     // i love hacks
     // fable doesnt assign instance members to the prototype so thats a nope

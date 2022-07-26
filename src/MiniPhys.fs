@@ -131,7 +131,7 @@ let engine =
          rootStyles = {|border = "1px solid gray"|}
 
          objects = HashSet [|
-             {
+             WrappedGObj {
                  layer = 1
                  blOffset = { x = 0.1<m>; y = 0.1<m> }
                  styles =
