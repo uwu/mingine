@@ -41,9 +41,10 @@ let updateGameObject scene gObj elem =
     applyStyles elem gObj.styles
 
     let pos =
-        gObj.physicsObj.pos
+        (gObj.physicsObj.pos
         - gObj.blOffset
-        - scene.renderOffset
+        - scene.renderOffset)
+        * scene.scale
 
     applyStyles elem requiredElementStyles
 
@@ -51,7 +52,7 @@ let updateGameObject scene gObj elem =
         elem
         {|left = $"{pos.x}px"
           bottom = $"{pos.y}px"
-          transform = $"rotate(${gObj.physicsObj.angle}rad)"|}
+          transform = $"rotate({gObj.physicsObj.angle}rad)"|}
 
 let renderRoot engine =
     let elem = Option.get engine.mounted

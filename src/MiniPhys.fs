@@ -42,12 +42,12 @@ let engine =
                                               "gravity", ForceModels.earthWeight
 
                                               (*"ground push force", (fun g ts ->
-                                (if g.pos.y >= 0.<_>
-                                then Vec2.origin
-                                else
-                                    { x = 0.<_>; y = typedAbs(g.velocity.y) * g.mass / ts + 10.<N> })
-                                , 0.<_>
-                                )*)
+                                                    (if g.pos.y >= 0.<_>
+                                                    then Vec2.origin
+                                                    else
+                                                        { x = 0.<_>; y = typedAbs(g.velocity.y) * g.mass / ts + 10.<N> })
+                                                    , 0.<_>
+                                                    )*)
 
                                               "tether",
                                               ForceModels.spring
@@ -73,4 +73,9 @@ let root =
 document.body.appendChild root |> ignore
 
 engine.mount root
-engine.start None
+
+engine.start (
+    Some
+        {lockPhysicsToRender = Some true
+         physicsHz = None}
+)
