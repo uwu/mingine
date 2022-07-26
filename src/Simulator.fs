@@ -9,23 +9,23 @@ open MiniPhys.Types.Units
 // http://buildnewgames.com/gamephysics/
 
 let guardFloatInstability<[<Measure>] 'u> =
-    mapFloatTyped<'u>
-        (fun value ->
-            if isNaN value || Math.abs value = Infinity
-            then 0.
-            else value)
+    mapFloatTyped<'u> (fun value ->
+        if isNaN value || Math.abs value = Infinity then
+            0.
+        else
+            value)
 
 let guardForceTorqueInstability (f, t) =
     Vec2.map guardFloatInstability f, guardFloatInstability t
 
 let calcForcesAndTorques gObj timeStep =
-    let forcesAndTorques = 
+    let forcesAndTorques =
         match gObj.forces with
         | BatchFC bfc -> bfc gObj timeStep
         | SingleFCs sfcs -> List.map (fun (_, f) -> f gObj timeStep) sfcs
-        
-    if forcesAndTorques.IsEmpty
-    then Vec2.origin, 0.<_>
+
+    if forcesAndTorques.IsEmpty then
+        Vec2.origin, 0.<_>
     else
         forcesAndTorques
         // remove NaN and +-Infinity forces and torques
@@ -35,30 +35,48 @@ let calcForcesAndTorques gObj timeStep =
 
 let updateObjectPos gObj timeStep =
     // update transform from last tick info
-    let newPos = gObj.pos + (gObj.velocity * timeStep) + (gObj.accel * 0.5 * (timeStep * timeStep))
-    let newAngle = gObj.angle + (gObj.angVelocity * timeStep) + (gObj.angAccel * 0.5 * (timeStep * timeStep))
-    
+    let newPos =
+        gObj.pos
+        + (gObj.velocity * timeStep)
+        + (gObj.accel * 0.5 * (timeStep * timeStep))
+
+    let newAngle =
+        gObj.angle
+        + (gObj.angVelocity * timeStep)
+        + (gObj.angAccel * 0.5 * (timeStep * timeStep))
+
     // calculate forces and torques
-    let force, torque = calcForcesAndTorques {gObj with pos = newPos(*; angle = newAngle*)} timeStep
-    
+    let force, torque =
+        calcForcesAndTorques
+            {gObj with
+                pos = newPos
+                angle = newAngle}
+            timeStep
+
     // update this tick acceleration
     // radians are dimensionless so are not part of the torque nor moment of inertia units, so add them in with *1rad
     let newAccel = force / gObj.mass
-    let newAngAccel = torque / gObj.momentOfInertia * 1.<rad>
-    
+
+    let newAngAccel =
+        torque / gObj.momentOfInertia * 1.<rad>
+
     let avgAccel = (gObj.accel + newAccel) / 2.
-    let avgAngAccel = (gObj.angAccel + newAngAccel) / 2.
-    
+
+    let avgAngAccel =
+        (gObj.angAccel + newAngAccel) / 2.
+
     // update this tick velocity
-    let newVelocity = gObj.velocity + (avgAccel * timeStep)
-    let newAngVelocity = gObj.angVelocity + (avgAngAccel * timeStep)
-    
-    { gObj with
+    let newVelocity =
+        gObj.velocity + (avgAccel * timeStep)
+
+    let newAngVelocity =
+        gObj.angVelocity + (avgAngAccel * timeStep)
+
+    {gObj with
         pos = newPos
         accel = newAccel
         velocity = newVelocity
-        
+
         angle = newAngle
         angAccel = newAngAccel
-        angVelocity = newAngVelocity
-        }
+        angVelocity = newAngVelocity}

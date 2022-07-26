@@ -9,14 +9,10 @@ open MiniPhys.Types
 open FSharp.Collections
 
 let requiredRootStyles =
-    {|
-        position = "relative"
-    |}
+    {|position = "relative"|}
 
 let requiredElementStyles =
-    {|
-        position = "absolute"
-    |}
+    {|position = "absolute"|}
 
 let inline applyStyles (elem: HTMLElement) (styles: obj) =
     Constructors.Object.assign (elem?style, styles)
@@ -50,7 +46,7 @@ let updateGameObject scene gObj elem =
         - scene.renderOffset
 
     applyStyles elem requiredElementStyles
-    
+
     applyStyles
         elem
         {|left = $"{pos.x}px"
@@ -60,19 +56,21 @@ let updateGameObject scene gObj elem =
 let renderRoot engine =
     let elem = Option.get engine.mounted
     applyStyles elem engine.scene.rootStyles
-    
-    let canvasPxSize = engine.scene.canvasSize * engine.scene.scale
-    applyStyles elem
-        {|
-            width = $"{canvasPxSize.x}px"
-            height = $"{canvasPxSize.y}px"
-        |}
-    
+
+    let canvasPxSize =
+        engine.scene.canvasSize * engine.scene.scale
+
+    applyStyles
+        elem
+        {|width = $"{canvasPxSize.x}px"
+          height = $"{canvasPxSize.y}px"|}
+
     applyStyles elem requiredRootStyles
 
 let renderGameObjects engine =
     for wrapped in engine.scene.objects do
-        let exists = engine.gObjMountedCache.ContainsKey wrapped
+        let exists =
+            engine.gObjMountedCache.ContainsKey wrapped
 
         if not exists then
             let elem =
@@ -94,8 +92,8 @@ let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY
     for wrapped in engine.scene.objects do
         let o = wrapped.o
-        wrapped.o <- { o with physicsObj = Simulator.updateObjectPos o.physicsObj timeStep }
-    
+        wrapped.o <- {o with physicsObj = Simulator.updateObjectPos o.physicsObj timeStep}
+
 let createEngine scene =
     // i love hacks
     // fable doesnt assign instance members to the prototype so thats a nope
@@ -111,8 +109,7 @@ let createEngine scene =
 
          gObjMountedCache = Dictionary()
 
-         mount =
-             (fun elem -> this.mounted <- Some elem)
+         mount = (fun elem -> this.mounted <- Some elem)
 
          unmount =
              (fun () ->
@@ -147,7 +144,7 @@ let createEngine scene =
 
                         renderRoot this
                         renderGameObjects this
-                        
+
                         if not cancel then
                             window.requestAnimationFrame renderLoop |> ignore)
 
@@ -163,7 +160,7 @@ let createEngine scene =
                                     let tick = performance.now ()
                                     let timeStep = tick - this.lastTick
                                     this.lastTick <- tick
-                                    
+
                                     runPhysicsTick this (timeStep / 1000.<_>))
                                 (int (1000. / physicsHz))
                         )
