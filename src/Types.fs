@@ -3,6 +3,7 @@ namespace MiniPhys.Types
 open System
 open System.Collections.Generic
 open FSharp.Data.UnitSystems.SI.UnitSymbols
+open MiniPhys.Types
 open MiniPhys.Types.Units
 
 // 2d vector with float64 precision. Works with F# units of measure.
@@ -150,4 +151,5 @@ type Scene =
      /// where in the scene should be rendered as the origin
      /// - for example: when set to (1, 2) then an object at (1, 2) would be rendered as if at (0, 0)
      renderOffset: Vec2<m>
-     canvasSize: Vec2<m>}
+     canvasSize: Vec2<m>
+     postTickHooks: (Scene -> float<s> -> unit) list}

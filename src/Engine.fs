@@ -94,6 +94,13 @@ let runPhysicsTick engine timeStep =
     for wrapped in engine.scene.objects do
         let o = wrapped.o
         wrapped.o <- {o with physicsObj = Simulator.updateObjectPos o.physicsObj timeStep}
+    
+    let hooks = engine.scene.postTickHooks
+    for h in hooks do
+        (*match *)h engine.scene timeStep (*with
+        | Some newS when not (obj.ReferenceEquals(newS, engine.scene)) ->
+            engine.scene <- newS
+        | _ -> ()*)
 
 let createEngine scene =
     // i love hacks
