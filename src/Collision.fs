@@ -57,4 +57,10 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
     | RectCollider (BL, TR) ->
         let relativeBL = BL + otherPos - pos
         let relativeTR = TR + otherPos - pos
-        raise (NotImplementedException())
+        let relativeTL = { x = relativeBL.x; y = relativeTR.y }
+        let relativeBR = { x = relativeTR.x; y = relativeBL.y }
+        let planeT = relativeTR - relativeTL
+        let planeR = relativeTR - relativeBR
+        let planeB = relativeBR - relativeBL
+        let planeL = relativeTL - relativeBL
+        failwith "pure unadulterated pain"
