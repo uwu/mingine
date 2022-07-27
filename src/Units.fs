@@ -12,6 +12,9 @@ let inline typedToTyped<[<Measure>] 'u, [<Measure>] 'v> =
 let inline mapFloatTyped<[<Measure>] 'u> f =
     (typedToFloat<'u> >> f >> floatToTyped<'u>)
 
+let inline mapFloatTyped2<[<Measure>] 'u> f v1 v2 =
+    f (typedToFloat<'u> v1) (typedToFloat<'u> v2) |> floatToTyped<'u>
+
 [<Measure>]
 type rad
 

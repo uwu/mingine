@@ -4,22 +4,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Units.fs"/>
-        <Compile Include="Types.fs"/>
-        <Compile Include="ForceModels.fs"/>
-        <Compile Include="Simulator.fs"/>
-        <Compile Include="Engine.fs"/>
-        <Compile Include="MiniPhys.fs"/>
+        <Compile Include="Units.fs" />
+        <Compile Include="Types.fs" />
+        <Compile Include="ForceModels.fs" />
+        <Compile Include="Simulator.fs" />
+        <Compile Include="Collision.fs" />
+        <Compile Include="Engine.fs" />
+        <Compile Include="MiniPhys.fs" />
     </ItemGroup>
 
     <!-- Add source files to "fable" folder in Nuget package -->
     <ItemGroup>
-        <Content Include="*.fsproj; **\*.fs; **\*.fsi" PackagePath="fable\"/>
+        <Content Include="*.fsproj; **\*.fs; **\*.fsi" PackagePath="fable\" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Fable.Browser.Dom" Version="2.10.0"/>
-        <PackageReference Include="Fable.Browser.Performance" Version="1.1.0"/>
-        <PackageReference Include="Fable.Core" Version="3.6.2"/>
+        <PackageReference Include="Fable.Browser.Dom" Version="2.10.0" />
+        <PackageReference Include="Fable.Browser.Performance" Version="1.1.0" />
+        <PackageReference Include="Fable.Core" Version="3.6.2" />
     </ItemGroup>
 </Project>

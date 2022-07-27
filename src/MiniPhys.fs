@@ -41,7 +41,7 @@ let engine =
                                     borderTop = "1px solid red"
                                     borderRight = "1px solid red"
                                     borderRadius = "99999px 0 99999px 99999px" |}
-                               collider = CircularCollider 0.1<m>
+                               collider = CircularCollider (0.1<m>, Vec2.origin)
                                physicsObj =
                                  { pos = { x = 0.<m>; y = 1.8<m> }
                                    mass = 0.5<kg>

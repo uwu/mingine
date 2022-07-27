@@ -86,7 +86,7 @@ type Vec2<[<Measure>] 'u> =
 
 
 type Collider =
-    | CircularCollider of radius: float<m>
+    | CircularCollider of float<m> * Vec2<m> // radius, center
     | RectCollider of Vec2<m> * Vec2<m> // bottom left, top right
     | CompositeCollider of Collider * Collider
 
