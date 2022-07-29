@@ -122,7 +122,8 @@ and PhysicsObj =
 
 /// Represents a renderable object in the game
 type GameObj =
-    {physicsObj: PhysicsObj
+    {id: string
+     physicsObj: PhysicsObj
      layer: int
      /// the vector of center subtract bottom left - this is used to position objects accurately
      blOffset: Vec2<m>
