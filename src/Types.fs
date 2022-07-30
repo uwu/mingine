@@ -49,6 +49,7 @@ type Vec2<[<Measure>] 'u> =
     static member (/)(v, s) = (Vec2<'u>.maps (/)) v s
     static member (/)(s, v) = (Vec2<'u>.smap (/)) s v
     
+    
     member vec.len = // ew
         let untypedVec =
             Vec2<'u>.map typedToFloat vec
@@ -85,6 +86,8 @@ type Vec2<[<Measure>] 'u> =
         // dot product = |a| |b| cos(theta)
         // so cos-1(dot product / |a| |b|) = theta
         acos ((v1 * v2) / (v1.len * v2.len)) |> floatToTyped<rad>
+    
+    member v.perp = { x = v.y; y = -v.x }
     
     // debugging purposes
     override v.ToString() = $"(%f{v.x}, %f{v.y})"

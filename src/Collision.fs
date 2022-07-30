@@ -1,82 +1,47 @@
 module MiniPhys.Collision
 
 open MiniPhys.Types
-(*open FSharp.Data.UnitSystems.SI.UnitSymbols
 
-// bottom left, top right
-type AABB = Vec2<m> * Vec2<m>
-
-let private vecMin = Vec2<_>.map2 min
-let private vecMax = Vec2<_>.map2 max
-
-/// rotates a rectangle and gets its axis-aligned bounding box <> -> []
-let aabbOfRotatedRect (rawBL, rawTR) angle : AABB =
-    // we need all 4 corners to turn a rotated rectangle into an aligned rectangle
-    let rawTL, rawBR = { x = rawBL.x; y = rawTR.y }, { x = rawTR.x; y = rawBL.y } 
-    let rotated1, rotated2, rotated3, rotated4 =
-        rawTL.rotate angle Vec2.origin,
-        rawTR.rotate angle Vec2.origin,
-        rawBR.rotate angle Vec2.origin, 
-        rawBL.rotate angle Vec2.origin
-    
-    vecMin (vecMin rotated1 rotated2) (vecMin rotated3 rotated4),
-    vecMax (vecMax rotated1 rotated2) (vecMax rotated3 rotated4)
-
-/// gets an unrotated rectangular bounding box from a collider
-let rec unalignedBoundingBox =
-    function
-    | RectCollider (bl, tr) -> bl, tr : AABB
-    | CircularCollider (rad, center) ->
-        let radVec = { x = rad; y = rad }
-        center - radVec, center + radVec
-    | CompositeCollider (a, b) ->
-        let b1 = unalignedBoundingBox a
-        let b2 = unalignedBoundingBox b
-        
-        vecMin (fst b1) (fst b2), vecMax (snd b1) (snd b2)
-
-
-/// gets an axis-aligned rectangular bounding box from a gObj
-let aabbFromGObj gObj =
-    let rawBB = unalignedBoundingBox gObj.collider
-    aabbOfRotatedRect rawBB gObj.physicsObj.angle*)
-
-
-let inline tupleMap f (v1, v2) = f v1, f v2
-
-let private getRectPlanes (bl, tr) angle origin =
+let private getRectNormals (bl, tr) angle origin =
     let tl = { x = bl.x; y = tr.y }
     let br = { x = tr.x; y = bl.y }
-    let planeT = tr, tl // these would be vectors but its more useful to have them as two points
-    let planeR = tr, br
-    let planeB = br, bl
-    let planeL = tl, bl
+    let planeT = tr - tl
+    let planeR = tr - br
+    let planeB = br - bl
+    let planeL = tl - bl
     
-    let rotatePlane = tupleMap (fun (p: Vec2<_>) -> p.rotate angle origin)
-    let rot1 = rotatePlane planeT
-    let rot2 = rotatePlane planeR
-    let rot3 = rotatePlane planeB
-    let rot4 = rotatePlane planeL
+    let rot1 = (planeT.rotate angle origin).perp.norm
+    let rot2 = (planeR.rotate angle origin).perp.norm
+    let rot3 = (planeB.rotate angle origin).perp.norm
+    let rot4 = (planeL.rotate angle origin).perp.norm
     
     rot1, rot2, rot3, rot4
 
-let doesPlaneCollideCircle (rad, center: Vec2<_>) plane =
-    // calculate vector from start of line to circle centre
-    // form right angle triangle by projecting circle center to line
-    // find theta
-    // apply trigonometry to find circle -> line length
-    // check if shorter than circle radius
-    let scVec = center - (fst plane)
-    let theta = scVec.angleTo (snd plane - fst plane) |> Units.typedToFloat
-    let projectedLen = scVec.len * (sin theta)
-    projectedLen <= rad
+/// takes an axis and a list of points, returns the min and max point of the projection
+let projectPolygonToAxis (axis: Vec2<_>) (points: list<_>) =
+    let startVal = axis * points[0] |> Units.typedToFloat
+    
+    points
+    |> List.skip 1
+    |> List.fold
+        (fun (currMin, currMax) point ->
+            let proj = axis * point |> Units.typedToFloat
+            min proj currMin, max proj currMax
+        )
+        (startVal, startVal)
 
+/// takes an axis and circle, returns the min and max point of the projection
+let projectCircleToAxis (axis: Vec2<_>) (rad, center: Vec2<_>) =
+    let centerPoint = axis * center |> Units.typedToFloat
+    centerPoint - (Units.typedToFloat rad), centerPoint + (Units.typedToFloat rad)
 
-let planesCollide (a, b) (c, d) =
-    // dont even question it
-    // https://math.stackexchange.com/a/3981906
-    let ccw a b c = ((c.y - a.y) * (b.x - a.x)) > ((b.y - a.y) * (c.x - a.x))
-    ((ccw a c d) <> (ccw b c d)) && ((ccw a b c) <> (ccw a b d))
+/// checks if two projections overlap. the pairs of values are expected to be (min, max)
+let checkProjectionOverlap (min1, max1) (min2, max2) =
+    // some of these tests may be unnecessary but thats what short circuits are for
+    (min1 < min2 && min2 < max1) // min2 is inside range 1
+    || (min1 < max2 && max2 < max1) // max2 is inside range 1
+    || (min2 < min1 && min1 < max2) // min1 is inside range 2
+    || (min2 < max1 && max1 < max2) // max1 is inside range 2
 
 /// checks if a circle collider is colliding with another given collider
 let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
@@ -89,14 +54,21 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
         let distance = abs ((otherPos + otherCenter) - (pos + center)).len
         distance > (rad + otherRad)
     
-    | RectCollider (BL, TR) ->
-        let absBL, absTR = BL + otherPos, TR + otherPos
+    | RectCollider (bl, tr) ->
+        let points =
+            [ bl; tr; { x = bl.x; y = tr.y }; { x = tr.x; y = bl.y } ]
+            |> List.map (fun p -> otherPos + (p.rotate otherAngle Vec2.origin))
         
-        let plane1, plane2, plane3, plane4 = getRectPlanes (absBL, absTR) otherAngle otherPos
+        let closestPoint =
+            points
+            |> List.minBy (fun p -> (center + pos - p).len)
         
-        let inline check p = doesPlaneCollideCircle (rad, center + pos) p
+        let axis = center + pos - closestPoint
         
-        check plane1 || check plane2 || check plane3 || check plane4
+        let circProj = projectCircleToAxis axis (rad, center)
+        let recProj = projectPolygonToAxis axis points
+        
+        checkProjectionOverlap circProj recProj
 
 let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
     match collider with
@@ -107,30 +79,15 @@ let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
     | CircularCollider (r, c) -> collidesWithCircle (r, c) otherPos (RectCollider (bl, tr)) pos angle
     
     | RectCollider (bl2, tr2) ->
-        let absBL1, absTR1 = bl + pos, tr + pos
-        let absBL2, absTR2 = bl2 + otherPos, tr2 + otherPos
-        
-        let plane1_1, plane1_2, plane1_3, plane1_4 = getRectPlanes (absBL1, absTR1) angle pos
-        let plane2_1, plane2_2, plane2_3, plane2_4 = getRectPlanes (absBL2, absTR2) otherAngle otherPos
-        
-        let check1 = planesCollide plane1_1
-        let check2 = planesCollide plane1_2
-        let check3 = planesCollide plane1_3
-        let check4 = planesCollide plane1_4
-        
-        check1 plane2_1 || check1 plane2_2 || check1 plane2_3 || check1 plane2_4
-        || check2 plane2_1 || check2 plane2_2 || check2 plane2_3 || check2 plane2_4
-        || check3 plane2_1 || check3 plane2_2 || check3 plane2_3 || check3 plane2_4
-        || check4 plane2_1 || check4 plane2_2 || check4 plane2_3 || check4 plane2_4
+        failwith "todo implement"
 
 let rec checkColliderCollision c1 c2 pos1 angle1 pos2 angle2 =
     match c1 with
+    | CircularCollider (r, c) -> collidesWithCircle (r, c) pos1 c2 pos2 angle2
+    | RectCollider (bl, tr) -> collidesWithRect (bl, tr) pos1 angle1 c2 pos2 angle2
     | CompositeCollider (a, b) ->
         checkColliderCollision a c2 pos1 angle1 pos2 angle2
         || checkColliderCollision b c2 pos1 angle1 pos2 angle2
-
-    | CircularCollider (r, c) -> collidesWithCircle (r, c) pos1 c2 pos2 angle2
-    | RectCollider (bl, tr) -> collidesWithRect (bl, tr) pos1 angle1 c2 pos2 angle2
 
 let checkGObjCollision gO1 gO2 =
     checkColliderCollision
