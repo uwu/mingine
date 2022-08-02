@@ -60,7 +60,7 @@ let engine =
                                {|width = $"{0.4<m> * renderScale}px"
                                  height = $"{0.3<m> * renderScale}px"
                                  border = "1px solid black"|}
-                            collider = RectCollider({x = 0.2<m>; y = 0.15<m>}, {x = -0.2<m>; y = -0.15<m>})
+                            collider = RectCollider({x = -0.2<m>; y = -0.15<m>}, {x = 0.2<m>; y = 0.15<m>})
                             physicsObj =
                                {pos = {x = 1.<m>; y = 1.<m>}
                                 mass = infinity |> Units.floatToTyped
@@ -90,7 +90,8 @@ let engine =
                                  borderTop = "1px solid red"
                                  borderRight = "1px solid red"
                                  borderRadius = "99999px 0 99999px 99999px"|}
-                            collider = CircularCollider(0.1<m>, Vec2.origin)
+                            collider = //CircularCollider(0.1<m>, Vec2.origin)
+                                RectCollider({x = -0.1<m>; y = -0.1<m>}, {x = 0.1<m>; y = 0.1<m>})
                             physicsObj =
                                {pos = {x = 0.<m>; y = 1.8<m>}
                                 mass = 0.5<kg>

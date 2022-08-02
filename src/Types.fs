@@ -60,7 +60,8 @@ type Vec2<[<Measure>] 'u> =
 
     member v.rotate (typedAngle: float<rad>) origin =
         let offset = v - origin
-        let angle = typedToFloat typedAngle
+        // lol negate it to make it cw not ccw
+        let angle = typedToFloat -typedAngle
 
         let xPrime =
             origin.x

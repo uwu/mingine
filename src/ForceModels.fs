@@ -19,7 +19,7 @@ let spring (springConstant: float<N / m>) restPos (connectionOset: Vec2<_>) gObj
 
     let e =
         distToCentre
-        + (connectionOset.rotate -gObj.angle Vec2.origin)
+        + (connectionOset.rotate gObj.angle Vec2.origin)
     // Fs=-ke
     let Fs = -e * springConstant
     let torque = distToCentre +* Fs // cross product brr
