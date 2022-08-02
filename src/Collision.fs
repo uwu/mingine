@@ -1,7 +1,6 @@
 module MiniPhys.Collision
 
 open MiniPhys.Types
-open Browser
 
 let private getOsetRectPoints (bl, tr) pos angle =
     [bl
@@ -57,7 +56,7 @@ let projectCircleToAxis (axis: Vec2<_>) (rad, center: Vec2<_>) =
 
 /// checks if two projections overlap. the pairs of values are expected to be (min, max)
 let checkProjectionOverlap (min1, max1) (min2, max2) =
-    // some of these tests may be unnecessary but thats what short circuits are for
+    // some of these tests may be unnecessary but that's what short circuits are for
     (min1 < min2 && min2 < max1) // min2 is inside range 1
     || (min1 < max2 && max2 < max1) // max2 is inside range 1
     || (min2 < min1 && min1 < max2) // min1 is inside range 2
@@ -80,14 +79,16 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
         let points =
             getOsetRectPoints (bl, tr) otherPos otherAngle
 
+
         let closestPoint =
             points
             |> List.minBy (fun p -> (center + pos - p).len)
 
-        let axis = center + pos - closestPoint
+        let axis =
+            (center + pos - closestPoint).norm
 
         let circProj =
-            projectCircleToAxis axis (rad, center)
+            projectCircleToAxis axis (rad, center + pos)
 
         let recProj =
             projectPolygonToAxis axis points
@@ -110,13 +111,8 @@ let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
         let theirPoints =
             getOsetRectPoints (bl2, tr2) otherPos otherAngle
 
-        let normals =
-            Array.append
-                (getRectNormals (bl, tr) angle)
-                (getRectNormals (bl2, tr2) otherAngle)
-
-        normals
-        |> Array.exists (fun axis ->
+        Array.append (getRectNormals (bl, tr) angle) (getRectNormals (bl2, tr2) otherAngle)
+        |> Array.forall (fun axis ->
             let proj1 =
                 projectPolygonToAxis axis myPoints
 
