@@ -13,7 +13,7 @@
       "name": "pnpm",
       "message": "mini-phys@1.0.0 build: `dotnet fable src -o dist`\nExit status 1",
       "code": "ELIFECYCLE",
-      "stack": "pnpm: mini-phys@1.0.0 build: `dotnet fable src -o dist`\nExit status 1\n    at EventEmitter.<anonymous> (/usr/lib/node_modules/pnpm/dist/pnpm.cjs:107358:20)\n    at EventEmitter.emit (node:events:527:28)\n    at ChildProcess.<anonymous> (/usr/lib/node_modules/pnpm/dist/pnpm.cjs:93924:18)\n    at ChildProcess.emit (node:events:527:28)\n    at maybeClose (node:internal/child_process:1090:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:302:5)"
+      "stack": "pnpm: mini-phys@1.0.0 build: `dotnet fable src -o dist`\nExit status 1\n    at EventEmitter.<anonymous> (/usr/lib/node_modules/pnpm/dist/pnpm.cjs:108610:20)\n    at EventEmitter.emit (node:events:513:28)\n    at ChildProcess.<anonymous> (/usr/lib/node_modules/pnpm/dist/pnpm.cjs:95176:18)\n    at ChildProcess.emit (node:events:513:28)\n    at maybeClose (node:internal/child_process:1091:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:302:5)"
     }
   },
   "2 warn pnpm:global": " Local package.json exists, but node_modules missing, did you mean to install?"

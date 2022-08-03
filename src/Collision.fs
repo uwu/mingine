@@ -83,7 +83,7 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
         let closestPoint =
             points
             |> List.minBy (fun p -> (center + pos - p).len)
-
+        
         let axis =
             (center + pos - closestPoint).norm
 
@@ -93,7 +93,18 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
         let recProj =
             projectPolygonToAxis axis points
 
-        checkProjectionOverlap circProj recProj
+        let circleSpecificCheck = checkProjectionOverlap circProj recProj
+        
+        let rectCheck =
+            getRectNormals (bl, tr) otherAngle
+            |> Array.distinct
+            |> Array.forall (fun axis ->
+                checkProjectionOverlap
+                    (projectPolygonToAxis axis points)
+                    (projectCircleToAxis axis (rad, center + pos))
+                )
+        
+        circleSpecificCheck && rectCheck
 
 /// checks if a rect collider is colliding with another given collider
 let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
@@ -112,6 +123,7 @@ let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
             getOsetRectPoints (bl2, tr2) otherPos otherAngle
 
         Array.append (getRectNormals (bl, tr) angle) (getRectNormals (bl2, tr2) otherAngle)
+        |> Array.distinct
         |> Array.forall (fun axis ->
             let proj1 =
                 projectPolygonToAxis axis myPoints

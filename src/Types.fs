@@ -6,7 +6,7 @@ open FSharp.Data.UnitSystems.SI.UnitSymbols
 open MiniPhys.Types
 open MiniPhys.Types.Units
 
-// 2d vector with float64 precision. Works with F# units of measure.
+/// 2d vector with float64 precision. Works with F# units of measure.
 type Vec2<[<Measure>] 'u> =
     {x: float<'u>
      y: float<'u>}
