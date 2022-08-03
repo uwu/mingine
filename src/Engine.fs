@@ -18,8 +18,15 @@ let inline applyStyles (elem: HTMLElement) (styles: obj) =
     Constructors.Object.assign (elem?style, styles)
     |> ignore
 
+/// options to control the engine
 type StartOpts =
-    {physicsHz: float option
+    {
+     /// the rate to update the engine at - overriden by lockPhysicsToRender
+     physicsHz: float option
+     /// a timestep cap, avoids engine instability at the cost of slowdowns
+     tsCap: float option
+     /// locks the physics tick to happen on each draw frame - overrides physicsHz
+     /// (set to -1 to disable)
      lockPhysicsToRender: bool option}
 
 type EngineWrap =
@@ -97,10 +104,7 @@ let runPhysicsTick engine timeStep =
     
     let hooks = engine.scene.postTickHooks
     for h in hooks do
-        (*match *)h engine.scene timeStep (*with
-        | Some newS when not (obj.ReferenceEquals(newS, engine.scene)) ->
-            engine.scene <- newS
-        | _ -> ()*)
+        h engine.scene timeStep
 
 let createEngine scene =
     // i love hacks
@@ -132,7 +136,8 @@ let createEngine scene =
          start =
             (Option.defaultValue
                 {lockPhysicsToRender = None
-                 physicsHz = None})
+                 physicsHz = None
+                 tsCap = None})
             >> (fun sOpts ->
                 let lockPhysicsToRender =
                     sOpts.lockPhysicsToRender
@@ -141,12 +146,18 @@ let createEngine scene =
                 let physicsHz =
                     sOpts.physicsHz |> Option.defaultValue 200
 
+                let inline calcTStep tick =
+                    match sOpts.tsCap with
+                    | Some t when t > 0 -> min (tick - this.lastTick) t
+                    | None -> min (tick - this.lastTick) 25 // 25ms default cap
+                    | _ -> tick - this.lastTick
+                
                 let mutable cancel = false
 
                 let rec renderLoop =
                     (fun tick ->
                         if lockPhysicsToRender then
-                            let timeStep = tick - this.lastTick
+                            let timeStep = calcTStep tick
                             this.lastTick <- tick
                             runPhysicsTick this (timeStep / 1000.<_>)
 
@@ -166,7 +177,7 @@ let createEngine scene =
                             setInterval
                                 (fun () ->
                                     let tick = performance.now ()
-                                    let timeStep = tick - this.lastTick
+                                    let timeStep = calcTStep tick
                                     this.lastTick <- tick
 
                                     runPhysicsTick this (timeStep / 1000.<_>))
