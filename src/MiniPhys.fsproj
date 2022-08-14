@@ -10,7 +10,8 @@
         <Compile Include="Simulator.fs" />
         <Compile Include="Collision.fs" />
         <Compile Include="Engine.fs" />
-        <Compile Include="MiniPhys.fs" />
+        <Compile Include="JsApi.fs" />
+        <Compile Include="Test.fs" />
     </ItemGroup>
 
     <!-- Add source files to "fable" folder in Nuget package -->

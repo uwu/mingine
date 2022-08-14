@@ -10,7 +10,7 @@ open MiniPhys.Types.Units
 type Vec2<[<Measure>] 'u> =
     {x: float<'u>
      y: float<'u>}
-
+    
     /// origin in 2d space
     static member origin = {x = 0.<_>; y = 0.<_>}
 
@@ -98,6 +98,7 @@ type Collider =
     | CircularCollider of float<m> * Vec2<m> // radius, center
     | RectCollider of Vec2<m> * Vec2<m> // bottom left, top right
     | CompositeCollider of Collider * Collider
+    | NullCollider
 
 type ForceAndTorque = Vec2<N> * float<N m>
 

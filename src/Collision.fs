@@ -65,6 +65,7 @@ let checkProjectionOverlap (min1, max1) (min2, max2) =
 /// checks if a circle collider is colliding with another given collider
 let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
     match collider with
+    | NullCollider -> false
     | CompositeCollider (a, b) ->
         collidesWithCircle (rad, center) pos a otherPos otherAngle
         || collidesWithCircle (rad, center) pos b otherPos otherAngle
@@ -109,6 +110,7 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
 /// checks if a rect collider is colliding with another given collider
 let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
     match collider with
+    | NullCollider -> false
     | CompositeCollider (a, b) ->
         collidesWithRect (bl, tr) pos angle a otherPos otherAngle
         || collidesWithRect (bl, tr) pos angle b otherPos otherAngle
@@ -136,6 +138,7 @@ let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
 /// checks if two colliders collide
 let rec checkColliderCollision c1 c2 pos1 angle1 pos2 angle2 =
     match c1 with
+    | NullCollider -> false
     | CircularCollider (r, c) -> collidesWithCircle (r, c) pos1 c2 pos2 angle2
     | RectCollider (bl, tr) -> collidesWithRect (bl, tr) pos1 angle1 c2 pos2 angle2
     | CompositeCollider (a, b) ->
