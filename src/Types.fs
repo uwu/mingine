@@ -103,14 +103,7 @@ type Collider =
 type ForceAndTorque = Vec2<N> * float<N m>
 
 /// A function that calculates a force and torque. It takes the object & time step.
-type SingleForceCalculator = PhysicsObj -> float<s> -> ForceAndTorque
-
-/// A function that calculates all forces and torques. It takes the object & time step.
-and BatchForceCalculator = PhysicsObj -> float<s> -> ForceAndTorque list
-
-and ForceCalculator =
-    | SingleFCs of (string * SingleForceCalculator) list
-    | BatchFC of BatchForceCalculator
+type ForceCalculator = PhysicsObj -> float<s> -> ForceAndTorque
 
 /// Represents an object that can have physics simulated on it
 and PhysicsObj =
@@ -118,7 +111,7 @@ and PhysicsObj =
      mass: float<kg>
      velocity: Vec2<m / s>
      accel: Vec2<m / s^2>
-     forces: ForceCalculator
+     forces: ForceCalculator[]
 
      momentOfInertia: float<kg m^2>
      angle: float<rad> // theta
@@ -163,4 +156,4 @@ type Scene =
      /// - for example: when set to (1, 2) then an object at (1, 2) would be rendered as if at (0, 0)
      renderOffset: Vec2<m>
      canvasSize: Vec2<m>
-     postTickHooks: (Scene -> float<s> -> unit) list}
+     postTickHooks: (Scene * float<s> -> unit)[]}

@@ -20,18 +20,17 @@ let guardForceTorqueInstability (f, t) =
 
 let calcForcesAndTorques gObj timeStep =
     let forcesAndTorques =
-        match gObj.forces with
-        | BatchFC bfc -> bfc gObj timeStep
-        | SingleFCs sfcs -> List.map (fun (_, f) -> f gObj timeStep) sfcs
+        gObj.forces
+        |> FSharp.Collections.Array.map (fun f -> f gObj timeStep)
 
-    if forcesAndTorques.IsEmpty then
+    if forcesAndTorques.Length = 0 then
         Vec2.origin, 0.<_>
     else
         forcesAndTorques
         // remove NaN and +-Infinity forces and torques
-        |> List.map guardForceTorqueInstability
+        |> FSharp.Collections.Array.map guardForceTorqueInstability
         // sum all forces and torques
-        |> List.reduce (fun (f1, t1) (f2, t2) -> (f1 + f2, t1 + t2))
+        |> FSharp.Collections.Array.reduce (fun (f1, t1) (f2, t2) -> (f1 + f2, t1 + t2))
 
 let updateObjectPos gObj timeStep =
     // update transform from last tick info

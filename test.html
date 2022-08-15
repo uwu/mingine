@@ -1,10 +1,78 @@
 <!DOCTYPE html>
 
 <body>
+<div id="miniphys-root"></div>
 </body>
 
 <script type="module">
 	//import "./dist/Test.js";
-    import * as mp from "./dist/JsApi.js"
-    window.miniphys = mp;
+	import * as mp from "./dist/JsApi.js"
+
+	window.mp = mp;
+	
+	const renderScale = 100;
+
+	const engine = mp.createEngine(mp.createScene({
+		scale: renderScale,
+		rootStyles: {border: "1px solid gray"},
+		canvasSize: mp.v(2, 2),
+		postTickHooks: [
+			// basic floor collision
+			(s, t) => {
+				for (const o of s.objects) {
+					const velocity = o.physicsObj.velocity
+
+                    // TODO: add vector funcs to replace ops in js
+					const newPos = o.physicsObj.pos + (velocity * t);
+
+					if (newPos.y < 0.1 && velocity.y < 0)
+						o.physicsObj.velocity = mp.v(velocity.x, velocity.y * -0.8);
+				}
+			}
+		],
+
+		objects: [
+			mp.createRect({
+				id: "ROTATING_RECT",
+				width: 0.4,
+				height: 0.3,
+				styles: {
+					// TODO: renderer system to handle (some!) styles
+					width: `${0.4 * renderScale}px`,
+					height: `${0.3 * renderScale}px`,
+					border: "1px solid black"
+				},
+				collide: true,
+				mass: Infinity,
+				// 1/12 m (h^2+w^2)
+                momentOfInertia: Infinity, // cba to type out full calc
+                angVelocity: 1,
+                pos: mp.v(1, 0.75)
+			}),
+
+			mp.createCircle({
+				id: "BOUNCING_BALL",
+				radius: 0.1,
+				styles: {
+					width: `${0.2 * renderScale}px`,
+					height: `${0.2 * renderScale}px`,
+					border: "1px solid black",
+					borderTop: "1px solid red",
+					borderRight: "1px solid red",
+					borderRadius: "999px 0 999px 999px"
+				},
+				collide: true,
+                mass: 0.5,
+                // mass^2 * area
+                momentOfInertia: (0.5 * 0.5) * (0.1 * 0.1),
+				pos: mp.v(0, 1.8)
+			})
+		]
+	}));
+
+	debugger;
+
+	const root = document.getElementById("miniphys-root");
+	engine.mount(root);
+	engine.start();
 </script>

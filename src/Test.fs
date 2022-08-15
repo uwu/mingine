@@ -18,38 +18,38 @@ let engine =
          rootStyles = {|border = "1px solid gray"|}
 
          postTickHooks =
-             [
-              // basic floor collision
-              (fun s t ->
-                  for o in s.objects do
-                      let velocity = o.o.physicsObj.velocity
+             [|
+               // basic floor collision
+               (fun (s, t) ->
+                   for o in s.objects do
+                       let velocity = o.o.physicsObj.velocity
 
-                      let newPos =
-                          o.o.physicsObj.pos + (velocity * t)
+                       let newPos =
+                           o.o.physicsObj.pos + (velocity * t)
 
-                      if newPos.y < 0.1<_> && velocity.y < 0.<_> then
-                          let newVelocity =
-                              {x = velocity.x; y = -velocity.y * 0.8} // restitution
+                       if newPos.y < 0.1<_> && velocity.y < 0.<_> then
+                           let newVelocity =
+                               {x = velocity.x; y = -velocity.y * 0.8} // restitution
 
-                          o.o <- {o.o with physicsObj = {o.o.physicsObj with velocity = newVelocity}})
+                           o.o <- {o.o with physicsObj = {o.o.physicsObj with velocity = newVelocity}})
 
-              // actual collision detection test
-              (fun s _ ->
-                  // horridly inefficient but ignore that
-                  let findObject id =
-                      s.objects |> Seq.find (fun o -> o.o.id = id)
+               // actual collision detection test
+               (fun (s, _) ->
+                   // horridly inefficient but ignore that
+                   let findObject id =
+                       s.objects |> Seq.find (fun o -> o.o.id = id)
 
-                  let bouncingBall =
-                      findObject "BOUNCING_BALL"
+                   let bouncingBall =
+                       findObject "BOUNCING_BALL"
 
-                  let rotatingRect =
-                      findObject "ROTATING_RECT"
+                   let rotatingRect =
+                       findObject "ROTATING_RECT"
 
-                  if Collision.checkGObjCollision bouncingBall.o rotatingRect.o then
-                      // ew mutation i wish i could update this api but this is the easiest for rn
-                      rotatingRect.o.styles?borderColor <- "red"
-                  else
-                      rotatingRect.o.styles?borderColor <- "")]
+                   if Collision.checkGObjCollision bouncingBall.o rotatingRect.o then
+                       // ew mutation i wish i could update this api but this is the easiest for rn
+                       rotatingRect.o.styles?borderColor <- "red"
+                   else
+                       rotatingRect.o.styles?borderColor <- "")|]
 
          objects =
              HashSet [|WrappedGObj
@@ -66,7 +66,7 @@ let engine =
                                 mass = infinity |> Units.floatToTyped
                                 velocity = Vec2.origin
                                 accel = Vec2.origin
-                                forces = SingleFCs []
+                                forces = [||]
 
                                 // 1/12 m (h^2+w^2)
                                 // lmao infinity
@@ -91,10 +91,11 @@ let engine =
                                  borderRight = "1px solid red"
                                  borderRadius = "99999px 0 99999px 99999px"|}
 
-                            collider = CompositeCollider(
-                                CircularCollider(0.1<m>, Vec2.origin) ,
-                            RectCollider({x = 0.<m>; y = 0.<m>}, {x = 0.1<m>; y = 0.1<m>})
-                            )
+                            collider =
+                                CompositeCollider(
+                                    CircularCollider(0.1<m>, Vec2.origin),
+                                    RectCollider({x = 0.<m>; y = 0.<m>}, {x = 0.1<m>; y = 0.1<m>})
+                                )
 
                             physicsObj =
                                 {pos = {x = 0.<m>; y = 1.8<m>}
@@ -102,24 +103,19 @@ let engine =
                                  velocity = Vec2.origin
                                  accel = Vec2.origin
                                  forces =
-                                    SingleFCs [
-                                               // wait this api is actually quite comf ayo
-                                               // strings are just tags, theyre ignored by the engine lol
-                                               "gravity", ForceModels.earthWeight
+                                    [|
+                                      // wait this api is actually quite comf ayo
+                                      // strings are just tags, theyre ignored by the engine lol
+                                      ForceModels.earthWeight
 
-                                               "tether",
-                                               ForceModels.spring
-                                                   5.<N/m>
-                                                   {x = 1.<m>; y = 1.5<m>}
-                                                   {x = 0.1<m>; y = 0.1<_>}
+                                      ForceModels.spring 5.<N/m> {x = 1.<m>; y = 1.5<m>} {x = 0.1<m>; y = 0.1<_>}
 
-                                               "air resistance",
-                                               ForceModels.stillAirDrag
-                                                   ForceModels.earthAirDensity
-                                                   (Math.PI * 0.1<m> * 0.1<m>)
-                                                   0.47
+                                      ForceModels.stillAirDrag
+                                          ForceModels.earthAirDensity
+                                          (Math.PI * 0.1<m> * 0.1<m>)
+                                          0.47
 
-                                               "crude basic damping", ForceModels.simpleDamping 0.25 0.05]
+                                      ForceModels.simpleDamping 0.25 0.05|]
 
                                  momentOfInertia = 0.5 * 0.5<kg> * (0.1<m> * 0.1<m>)
                                  angle = 0.<_>
