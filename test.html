@@ -20,14 +20,12 @@
 			// basic floor collision
 			(s, t) => {
 				for (const o of s.objects) {
-					const velocity = o.physicsObj.velocity
+					const p = o.physicsObj;
+					
+					const newPos = p.pos.add(p.velocity.scale(t));
 
-					// TODO: add vector funcs to replace ops in js
-					//const newPos = o.physicsObj.pos + (velocity * t);
-                    const newPos = o.physicsObj.pos;
-
-					if (newPos.y < 0.1 && velocity.y < 0)
-						o.physicsObj.velocity = mp.v(velocity.x, velocity.y * -0.8);
+					if (newPos.y < 0.1 && p.velocity.y < 0)
+						p.velocity = mp.v(p.velocity.x, p.velocity.y * -0.8);
 				}
 			}
 		],

@@ -17,6 +17,26 @@ let private tsTag: string =
 Vec2.origin?__proto__.[tsTag] <- "Vec2"
 NullCollider?__proto__.[tsTag] <- "Collider"
 
+let private v2a other = (jsThis: Vec2<_>) + other
+let private v2s other = (jsThis: Vec2<_>) - other
+let private v2neg () = -(jsThis: Vec2<_>)
+let private v2dm other = (jsThis: Vec2<_>) * (other: Vec2<_>)
+let private v2cm other = (jsThis: Vec2<_>) +* (other: Vec2<_>)
+let private v2sm other = (jsThis: Vec2<_>) * (other: float<_>)
+let private v2sd other = (jsThis: Vec2<_>) / other
+
+Constructors.Object.assign (
+    Vec2.origin?__proto__,
+    {|add = v2a
+      sub = v2s
+      neg = v2neg
+      dot = v2dm
+      cross = v2cm
+      scale = v2sm
+      scdiv = v2sd|}
+)
+|> ignore
+
 let inline private backup v b = if isNullOrUndefined v then b else v
 
 [<Global("Object.defineProperty")>]
@@ -135,17 +155,14 @@ let forceModels =
     {|weight = (fun gravity -> (ForceModels.weight gravity): System.Func<_, _>)
       spring =
         (fun sprConst restPos connectionOset -> (ForceModels.spring sprConst restPos connectionOset): System.Func<_, _>)
-      airDrag = (fun flowVel density csArea dragCoeff ->
-            (ForceModels.airDrag flowVel density csArea dragCoeff) : System.Func<_, _>)
-      stillAirDrag = (fun density csArea dragCoeff ->
-            (ForceModels.stillAirDrag density csArea dragCoeff) : System.Func<_, _>)
-        
-      simpleDamping = (fun posRatio angRatio ->
-            (ForceModels.simpleDamping posRatio angRatio) : System.Func<_, _>)
-        |}
-        
+      airDrag =
+        (fun flowVel density csArea dragCoeff ->
+            (ForceModels.airDrag flowVel density csArea dragCoeff): System.Func<_, _>)
+      stillAirDrag =
+        (fun density csArea dragCoeff -> (ForceModels.stillAirDrag density csArea dragCoeff): System.Func<_, _>)
+
+      simpleDamping = (fun posRatio angRatio -> (ForceModels.simpleDamping posRatio angRatio): System.Func<_, _>)|}
+
 let consts =
-    {|
-      earthGravity = ForceModels.earthGravity
-      earthAirDensity = ForceModels.earthAirDensity
-      |}
+    {|earthGravity = ForceModels.earthGravity
+      earthAirDensity = ForceModels.earthAirDensity|}
