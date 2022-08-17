@@ -8,6 +8,8 @@ open Fable.Core.DynamicExtensions
 open MiniPhys.Types
 open Fable.Core.JsInterop
 
+let private nothingFunc () = ()
+
 // its a symbol not a string but its gotta be usable for indexing
 let private tsTag: string =
     window?Symbol?toStringTag
@@ -128,9 +130,22 @@ let createColliderCircle rad center = CircularCollider(rad, center)
 let createColliderRect botLeft topRight = RectCollider(botLeft, topRight)
 
 let forceModels =
+    // using delegates can force currying in fable
+    // https://github.com/fable-compiler/Fable/issues/815#issuecomment-294296159
+    {|weight = (fun gravity -> (ForceModels.weight gravity): System.Func<_, _>)
+      spring =
+        (fun sprConst restPos connectionOset -> (ForceModels.spring sprConst restPos connectionOset): System.Func<_, _>)
+      airDrag = (fun flowVel density csArea dragCoeff ->
+            (ForceModels.airDrag flowVel density csArea dragCoeff) : System.Func<_, _>)
+      stillAirDrag = (fun density csArea dragCoeff ->
+            (ForceModels.stillAirDrag density csArea dragCoeff) : System.Func<_, _>)
+        
+      simpleDamping = (fun posRatio angRatio ->
+            (ForceModels.simpleDamping posRatio angRatio) : System.Func<_, _>)
+        |}
+        
+let consts =
     {|
-     weight = (fun (gravity, gObj) -> ForceModels.weight gravity gObj)
-     earthWeight = (fun gObj -> ForceModels.earthWeight gObj)
-     spring = ForceModels.spring
-     
+      earthGravity = ForceModels.earthGravity
+      earthAirDensity = ForceModels.earthAirDensity
       |}

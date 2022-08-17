@@ -9,7 +9,7 @@
 	import * as mp from "./dist/JsApi.js"
 
 	window.mp = mp;
-	
+
 	const renderScale = 100;
 
 	const engine = mp.createEngine(mp.createScene({
@@ -22,8 +22,9 @@
 				for (const o of s.objects) {
 					const velocity = o.physicsObj.velocity
 
-                    // TODO: add vector funcs to replace ops in js
-					const newPos = o.physicsObj.pos + (velocity * t);
+					// TODO: add vector funcs to replace ops in js
+					//const newPos = o.physicsObj.pos + (velocity * t);
+                    const newPos = o.physicsObj.pos;
 
 					if (newPos.y < 0.1 && velocity.y < 0)
 						o.physicsObj.velocity = mp.v(velocity.x, velocity.y * -0.8);
@@ -45,9 +46,9 @@
 				collide: true,
 				mass: Infinity,
 				// 1/12 m (h^2+w^2)
-                momentOfInertia: Infinity, // cba to type out full calc
-                angVelocity: 1,
-                pos: mp.v(1, 0.75)
+				momentOfInertia: Infinity, // cba to type out full calc
+				angVelocity: 1,
+				pos: mp.v(1, 0.75)
 			}),
 
 			mp.createCircle({
@@ -62,15 +63,21 @@
 					borderRadius: "999px 0 999px 999px"
 				},
 				collide: true,
-                mass: 0.5,
-                // mass^2 * area
-                momentOfInertia: (0.5 * 0.5) * (0.1 * 0.1),
-				pos: mp.v(0, 1.8)
+				mass: 0.5,
+				// mass^2 * area
+				momentOfInertia: (0.5 * 0.5) * (0.1 * 0.1),
+				pos: mp.v(0, 1.8),
+
+				forces: [
+					mp.forceModels.weight(mp.consts.earthGravity),
+					mp.forceModels.spring(5, mp.v(1, 1.5), mp.v(0.1, 0.1)),
+					mp.forceModels.stillAirDrag(mp.consts.earthAirDensity, Math.PI * 0.1 * 0.1, 0.47),
+
+					mp.forceModels.simpleDamping(0.25, 0.05)
+				]
 			})
 		]
 	}));
-
-	debugger;
 
 	const root = document.getElementById("miniphys-root");
 	engine.mount(root);

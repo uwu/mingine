@@ -103,7 +103,7 @@ type Collider =
 type ForceAndTorque = Vec2<N> * float<N m>
 
 /// A function that calculates a force and torque. It takes the object & time step.
-type ForceCalculator = PhysicsObj -> float<s> -> ForceAndTorque
+type ForceCalculator = PhysicsObj * float<s> -> ForceAndTorque
 
 /// Represents an object that can have physics simulated on it
 and PhysicsObj =

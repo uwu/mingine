@@ -21,7 +21,7 @@ let guardForceTorqueInstability (f, t) =
 let calcForcesAndTorques gObj timeStep =
     let forcesAndTorques =
         gObj.forces
-        |> FSharp.Collections.Array.map (fun f -> f gObj timeStep)
+        |> FSharp.Collections.Array.map (fun f -> f (gObj, timeStep))
 
     if forcesAndTorques.Length = 0 then
         Vec2.origin, 0.<_>

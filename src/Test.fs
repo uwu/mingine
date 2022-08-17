@@ -106,7 +106,7 @@ let engine =
                                     [|
                                       // wait this api is actually quite comf ayo
                                       // strings are just tags, theyre ignored by the engine lol
-                                      ForceModels.earthWeight
+                                      ForceModels.weight ForceModels.earthGravity
 
                                       ForceModels.spring 5.<N/m> {x = 1.<m>; y = 1.5<m>} {x = 0.1<m>; y = 0.1<_>}
 
