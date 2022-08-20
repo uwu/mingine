@@ -21,12 +21,24 @@
 			(s, t) => {
 				for (const o of s.objects) {
 					const p = o.physicsObj;
-					
+
 					const newPos = p.pos.add(p.velocity.scale(t));
 
 					if (newPos.y < 0.1 && p.velocity.y < 0)
 						p.velocity = mp.v(p.velocity.x, p.velocity.y * -0.8);
 				}
+			},
+
+			// box collision test
+			(s, _t) => {
+				// Array.from(s.objects);
+				const objects = s.getObjects();
+				const bouncingBall = objects.find(o => o.id === "BOUNCING_BALL");
+				const rotatingRect = objects.find(o => o.id === "ROTATING_RECT");
+
+				rotatingRect.styles.borderColor =
+					mp.areColliding(bouncingBall, rotatingRect)
+						? "red" : "";
 			}
 		],
 
