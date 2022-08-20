@@ -5,7 +5,6 @@ open Browser
 open Browser.Types
 open Fable.Core.JS
 open Fable.Core.JsInterop
-open Fable.Core.DynamicExtensions
 open MiniPhys.Types
 open FSharp.Collections
 
@@ -105,8 +104,7 @@ let runPhysicsTick engine timeStep =
     
     let hooks = engine.scene.postTickHooks
     for h in hooks do
-        // automatic uncurrying fail
-        h.Invoke(engine.scene, timeStep)
+        h (engine.scene, timeStep)
 
 let createEngine scene =
     // i love hacks

@@ -18,7 +18,7 @@
 		canvasSize: mp.v(2, 2),
 		postTickHooks: [
 			// basic floor collision
-			(s, t) => {
+			([s, t]) => {
 				for (const o of s.objects) {
 					const p = o.physicsObj;
 
@@ -30,7 +30,7 @@
 			},
 
 			// box collision test
-			(s, _t) => {
+			([s, _t]) => {
 				// Array.from(s.objects);
 				const objects = s.getObjects();
 				const bouncingBall = objects.find(o => o.id === "BOUNCING_BALL");
