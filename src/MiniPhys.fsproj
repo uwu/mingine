@@ -4,6 +4,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Macrotask.fs" />
         <Compile Include="Units.fs" />
         <Compile Include="Types.fs" />
         <Compile Include="ForceModels.fs" />

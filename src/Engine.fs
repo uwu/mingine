@@ -9,6 +9,22 @@ open Fable.Core.DynamicExtensions
 open MiniPhys.Types
 open FSharp.Collections
 
+let mutable ticks = 0
+let mutable last = performance.now()
+let rec loop t =
+    let time = (t - last) / 10.
+    let ticksPerMs = (float ticks) / time
+    let ticksHz = ticksPerMs * 1000.
+    let ticksKHz = ticksHz / 1000. // thats fun
+    
+    (document.getElementById "khz").innerText <- (string (round ticksKHz))
+    
+    last <- t
+    ticks <- 0
+    window.requestAnimationFrame loop |> ignore
+
+loop last
+
 let requiredRootStyles =
     {|position = "relative"|}
 
@@ -98,6 +114,7 @@ let renderGameObjects engine =
             engine.gObjMountedCache.Remove kv.Key |> ignore
 
 let runPhysicsTick engine timeStep =
+    ticks <- ticks + 1
     // EWWWW MUTABILITY
     for wrapped in engine.scene.objects do
         let o = wrapped.o
@@ -106,7 +123,7 @@ let runPhysicsTick engine timeStep =
     let hooks = engine.scene.postTickHooks
     for h in hooks do
         // automatic uncurrying fail
-        h.Invoke(engine.scene, timeStep)
+        h(*.Invoke*)(engine.scene, timeStep)
 
 let createEngine scene =
     // i love hacks
@@ -176,21 +193,21 @@ let createEngine scene =
                         None
                     else
                         Some(
-                            setInterval
+                            Macrotask.macroloop
                                 (fun () ->
                                     let tick = performance.now ()
-                                    let timeStep = calcTStep tick
+                                    let timeStep = 1. //calcTStep tick
                                     this.lastTick <- tick
 
                                     runPhysicsTick this (timeStep / 1000.<_>))
-                                (int (1000. / physicsHz))
+                                //(int (1000. / physicsHz))
                         )
 
                 this.stop <-
                     (fun () ->
                         cancel <- true
                         // clear the interval if intervalCode is Some(int), do nothing if None
-                        Option.map clearInterval intervalCode |> ignore
+                        Option.map (fun f -> f()) intervalCode |> ignore
                         this.stop <- defaultStopFunc)
 
                 this.lastTick <- performance.now ())}
