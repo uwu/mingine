@@ -20,8 +20,7 @@ let inline applyStyles (elem: HTMLElement) (styles: obj) =
 
 /// options to control the engine
 type StartOpts =
-    {
-     /// the rate to update the engine at - overriden by lockPhysicsToRender
+    {/// the rate to update the engine at - overriden by lockPhysicsToRender
      physicsHz: float option
      /// a timestep cap, avoids engine instability at the cost of slowdowns
      tsCap: float option
@@ -49,8 +48,8 @@ let updateGameObject scene gObj elem =
 
     let pos =
         (gObj.physicsObj.pos
-        - gObj.blOffset
-        - scene.renderOffset)
+         - gObj.blOffset
+         - scene.renderOffset)
         * scene.scale
 
     applyStyles elem requiredElementStyles
@@ -96,13 +95,44 @@ let renderGameObjects engine =
             kv.Value.remove ()
             engine.gObjMountedCache.Remove kv.Key |> ignore
 
+let collideAllObjects engine _ =
+    let objects =
+        engine.scene.objects
+        |> Seq.map (fun o ->
+            let objs =
+                engine.scene.objects
+                |> Seq.except [|o|]
+                |> Seq.map (fun o2 -> Collision.collideGObjs o.o o2.o)
+                |> Seq.choose id
+                |> Seq.toArray
+
+            o,
+            if objs.Length = 0 then
+                Vec2.origin
+            else
+                objs
+                |> Collections.Array.reduce (Vec2<_>.map2 min))
+
+    // mutability bad but also itd be more comfy :skull:
+    for obj, v in objects do
+        obj.o <-
+            {obj.o with
+                physicsObj =
+                    {obj.o.physicsObj with
+                        pos =
+                            obj.o.physicsObj.pos
+                            - (Vec2.map Units.floatToTyped v)}}
+
 let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY
     for wrapped in engine.scene.objects do
         let o = wrapped.o
         wrapped.o <- {o with physicsObj = Simulator.updateObjectPos o.physicsObj timeStep}
-    
+
+    collideAllObjects engine timeStep
+
     let hooks = engine.scene.postTickHooks
+
     for h in hooks do
         h (engine.scene, timeStep)
 
@@ -151,7 +181,7 @@ let createEngine scene =
                     | Some t when t > 0 -> min (tick - this.lastTick) t
                     | None -> min (tick - this.lastTick) 25 // 25ms default cap
                     | _ -> tick - this.lastTick
-                
+
                 let mutable cancel = false
 
                 let rec renderLoop =

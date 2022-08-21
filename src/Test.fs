@@ -45,7 +45,7 @@ let engine =
                    let rotatingRect =
                        findObject "ROTATING_RECT"
 
-                   if Collision.checkGObjCollision bouncingBall.o rotatingRect.o then
+                   if Collision.collideGObjs bouncingBall.o rotatingRect.o |> Option.isSome then
                        // ew mutation i wish i could update this api but this is the easiest for rn
                        rotatingRect.o.styles?borderColor <- "red"
                    else

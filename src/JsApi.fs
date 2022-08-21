@@ -167,4 +167,6 @@ let consts =
     {|earthGravity = ForceModels.earthGravity
       earthAirDensity = ForceModels.earthAirDensity|}
 
-let areColliding (g1: WrappedGObj) (g2: WrappedGObj) = Collision.checkGObjCollision g1.o g2.o
+let getCollision (g1: WrappedGObj) (g2: WrappedGObj) = Collision.collideGObjs g1.o g2.o
+
+let areColliding g1 g2 = getCollision g1 g2 |> Option.isSome

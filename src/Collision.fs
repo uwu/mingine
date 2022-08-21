@@ -32,6 +32,30 @@ let private getRectNormals (bl, tr) angle =
     //rot1, rot2, rot3, rot4
     [|rot1; rot2; rot3; rot4|]
 
+let private min2 v1 v2 =
+    if (fst v1) < (fst v2) then
+        v1
+    else v2
+
+let minOptionsAnd o1 o2 =
+    match o1 with
+    | None -> None
+    | Some v1 ->
+        match o2 with
+        | None -> None
+        | Some v2 -> Some(min2 v1 v2)
+        
+let minOptionsOr o1 o2 =
+    match o1 with
+    | None ->
+        match o2 with
+        | None -> None
+        | Some r2 -> Some r2
+    | Some v1 ->
+        match o2 with
+        | None -> None
+        | Some v2 -> Some(min2 v1 v2)
+
 /// takes an axis and a list of points, returns the min and max point of the projection
 let projectPolygonToAxis (axis: Vec2<_>) (points: list<_>) =
     let startVal =
@@ -50,9 +74,9 @@ let projectPolygonToAxis (axis: Vec2<_>) (points: list<_>) =
 /// takes an axis and circle, returns the min and max point of the projection
 let projectCircleToAxis (axis: Vec2<_>) (rad, center: Vec2<_>) =
     let centerPoint =
-        axis * center |> Units.typedToFloat
+        axis * center |> Units.typedToTyped
 
-    centerPoint - (Units.typedToFloat rad), centerPoint + (Units.typedToFloat rad)
+    centerPoint - rad |> Units.typedToFloat, centerPoint + rad |> Units.typedToFloat
 
 /// checks if two projections overlap. the pairs of values are expected to be (min, max)
 let checkProjectionOverlap (min1, max1) (min2, max2) =
@@ -62,19 +86,32 @@ let checkProjectionOverlap (min1, max1) (min2, max2) =
     || (min2 < min1 && min1 < max2) // min1 is inside range 2
     || (min2 < max1 && max1 < max2) // max1 is inside range 2
 
-/// checks if a circle collider is colliding with another given collider
-let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
+/// checks if two projections overlap and returns how much they overlap if they do
+let getProjectionOverlap (min1, max1) (min2, max2) =
+    if checkProjectionOverlap (min1, max1) (min2, max2) then
+        (min max1 max2) - (max min1 min2) |> Some
+    else
+        None
+
+/// gets MTV if a circle collider is colliding with another given collider
+let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
     match collider with
-    | NullCollider -> false
+    | NullCollider -> None
     | CompositeCollider (a, b) ->
-        collidesWithCircle (rad, center) pos a otherPos otherAngle
-        || collidesWithCircle (rad, center) pos b otherPos otherAngle
+        minOptionsOr
+            (collideWithCircle (rad, center) pos a otherPos otherAngle)
+            (collideWithCircle (rad, center) pos b otherPos otherAngle)
 
     | CircularCollider (otherRad, otherCenter) ->
-        let distance =
-            abs ((otherPos + otherCenter) - (pos + center)).len
+        let vecToOther = (otherPos + otherCenter) - (pos + center)
+        
+        let overlapAmount =
+            (rad + otherRad) - (abs vecToOther.len)
 
-        distance > (rad + otherRad)
+        if overlapAmount > 0.<_> then
+            Some(Units.typedToFloat overlapAmount, vecToOther.norm)
+        else
+            None
 
     | RectCollider (bl, tr) ->
         let points =
@@ -84,7 +121,7 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
         let closestPoint =
             points
             |> List.minBy (fun p -> (center + pos - p).len)
-        
+
         let axis =
             (center + pos - closestPoint).norm
 
@@ -94,28 +131,42 @@ let rec collidesWithCircle (rad, center) pos collider otherPos otherAngle =
         let recProj =
             projectPolygonToAxis axis points
 
-        let circleSpecificCheck = checkProjectionOverlap circProj recProj
-        
+        let circleSpecificCheck =
+            match getProjectionOverlap circProj recProj with
+            | None -> None
+            | Some olap -> Some(olap, axis)
+
         let rectCheck =
             getRectNormals (bl, tr) otherAngle
             |> Array.distinct
-            |> Array.forall (fun axis ->
-                checkProjectionOverlap
-                    (projectPolygonToAxis axis points)
-                    (projectCircleToAxis axis (rad, center + pos))
-                )
-        
-        circleSpecificCheck && rectCheck
+            |> Array.fold
+                (fun curr axis ->
+                    match curr with
+                    | None -> None
+                    | Some c ->
+                        let p = 
+                            getProjectionOverlap
+                               (projectPolygonToAxis axis points)
+                               (projectCircleToAxis axis (rad, center + pos))
+                        
+                        match p with
+                        | None -> None
+                        | Some rp -> Some((min rp (fst c)), axis)
+                    )
+                (Some(infinity, Vec2.origin))
 
-/// checks if a rect collider is colliding with another given collider
-let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
+        minOptionsAnd circleSpecificCheck rectCheck
+
+/// gets MTV if a rect collider is colliding with another given collider
+let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
     match collider with
-    | NullCollider -> false
+    | NullCollider -> None
     | CompositeCollider (a, b) ->
-        collidesWithRect (bl, tr) pos angle a otherPos otherAngle
-        || collidesWithRect (bl, tr) pos angle b otherPos otherAngle
+        minOptionsAnd
+            (collideWithRect (bl, tr) pos angle a otherPos otherAngle)
+            (collideWithRect (bl, tr) pos angle b otherPos otherAngle)
 
-    | CircularCollider (r, c) -> collidesWithCircle (r, c) otherPos (RectCollider(bl, tr)) pos angle
+    | CircularCollider (r, c) -> collideWithCircle (r, c) otherPos (RectCollider(bl, tr)) pos angle
 
     | RectCollider (bl2, tr2) ->
         let myPoints =
@@ -126,31 +177,43 @@ let rec collidesWithRect (bl, tr) pos angle collider otherPos otherAngle =
 
         Array.append (getRectNormals (bl, tr) angle) (getRectNormals (bl2, tr2) otherAngle)
         |> Array.distinct
-        |> Array.forall (fun axis ->
-            let proj1 =
-                projectPolygonToAxis axis myPoints
+        |> Array.fold
+                (fun curr axis ->
+                    match curr with
+                    | None -> None
+                    | Some c ->
+                        let p = 
+                            getProjectionOverlap
+                               (projectPolygonToAxis axis myPoints)
+                               (projectPolygonToAxis axis theirPoints)
+                        
+                        match p with
+                        | None -> None
+                        | Some rp -> Some((min rp (fst c)), axis)
+                    )
+                (Some(infinity, Vec2.origin))
 
-            let proj2 =
-                projectPolygonToAxis axis theirPoints
+/// resolves an MTV into one vector
+let resolveMTV (mag: float<_>, vec: Vec2<_>) = vec.norm * mag
 
-            checkProjectionOverlap proj1 proj2)
-
-/// checks if two colliders collide
-let rec checkColliderCollision c1 c2 pos1 angle1 pos2 angle2 =
+/// gets MTV if two colliders collide
+let rec collideColliders c1 c2 pos1 angle1 pos2 angle2 =
     match c1 with
-    | NullCollider -> false
-    | CircularCollider (r, c) -> collidesWithCircle (r, c) pos1 c2 pos2 angle2
-    | RectCollider (bl, tr) -> collidesWithRect (bl, tr) pos1 angle1 c2 pos2 angle2
+    | NullCollider -> None
+    | CircularCollider (r, c) -> collideWithCircle (r, c) pos1 c2 pos2 angle2
+    | RectCollider (bl, tr) -> collideWithRect (bl, tr) pos1 angle1 c2 pos2 angle2
     | CompositeCollider (a, b) ->
-        checkColliderCollision a c2 pos1 angle1 pos2 angle2
-        || checkColliderCollision b c2 pos1 angle1 pos2 angle2
+        minOptionsOr
+            (collideColliders a c2 pos1 angle1 pos2 angle2)
+            (collideColliders b c2 pos1 angle1 pos2 angle2)
 
-/// checks if two objects collide
-let checkGObjCollision gO1 gO2 =
-    checkColliderCollision
+/// gets resolved vector if two objects collide
+let collideGObjs gO1 gO2 =
+    collideColliders
         gO1.collider
         gO2.collider
         gO1.physicsObj.pos
         gO1.physicsObj.angle
         gO2.physicsObj.pos
         gO2.physicsObj.angle
+    |> Option.map resolveMTV

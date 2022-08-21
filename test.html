@@ -9,6 +9,18 @@
 	import * as mp from "./dist/JsApi.js"
 
 	window.mp = mp;
+	
+	function createTearDrop(o) {
+		o.collider = !o.collide 
+            ? mp.createColliderNull()
+            : mp.createColliderComposite(
+				mp.createColliderCircle(o.radius, mp.vo()),
+                mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius))
+            );
+        
+		o.blOffset = mp.v(o.radius, o.radius);
+		return mp.createObject(o);
+    }
 
 	const renderScale = 100;
 
@@ -57,11 +69,12 @@
 				mass: Infinity,
 				// 1/12 m (h^2+w^2)
 				momentOfInertia: Infinity, // cba to type out full calc
-				angVelocity: 1,
+				//angVelocity: 1,
+                angle: 0.85,
 				pos: mp.v(1, 0.75)
 			}),
 
-			mp.createCircle({
+			createTearDrop({
 				id: "BOUNCING_BALL",
 				radius: 0.1,
 				styles: {
@@ -85,7 +98,7 @@
 
 					mp.forceModels.simpleDamping(0.25, 0.05)
 				]
-			})
+			}),
 		]
 	}));
 
