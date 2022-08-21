@@ -23,9 +23,9 @@ type StartOpts =
     {/// the rate to update the engine at - overriden by lockPhysicsToRender
      physicsHz: float option
      /// a timestep cap, avoids engine instability at the cost of slowdowns
+     /// (set to -1 to disable)
      tsCap: float option
      /// locks the physics tick to happen on each draw frame - overrides physicsHz
-     /// (set to -1 to disable)
      lockPhysicsToRender: bool option}
 
 type EngineWrap =
