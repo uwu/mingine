@@ -13,8 +13,10 @@
 		o.collider = !o.collide 
             ? mp.createColliderNull()
             : mp.createColliderComposite(
-				mp.createColliderCircle(o.radius, mp.vo()),
-                mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius))
+                mp.createColliderCircle(o.radius, mp.vo()),
+                //mp.createColliderNull()
+                // TODO: why is rect-circle collision broken?
+                 mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius))
             );
         
 		o.blOffset = mp.v(o.radius, o.radius);
@@ -65,7 +67,7 @@
 					border: "1px solid black"
 				},
 				collide: true,
-				mass: Infinity,
+				mass:  1, //Infinity,
 				// 1/12 m (h^2+w^2)
 				momentOfInertia: Infinity, // cba to type out full calc
 				//angVelocity: 1,

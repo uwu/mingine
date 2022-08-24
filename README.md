@@ -9,7 +9,7 @@ Install from npm. Have fun.
 
 Docs when its more complete.
 
-Typescript when Fable fixes it.
+Typescript defs should be updated with js api.
 
 ## Contributing
 This is written in F#. You can use npm scripts for most things.

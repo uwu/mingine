@@ -102,7 +102,11 @@ let collideAllObjects engine _ =
             let objs =
                 engine.scene.objects
                 |> Seq.except [|o|]
-                |> Seq.map (fun o2 -> Collision.collideGObjs o.o o2.o)
+                |> Seq.map (fun o2 ->
+                            match Collision.collideGObjs o.o o2.o with
+                            | None -> None
+                            | Some rawMtv -> Some (rawMtv * (o2.o.physicsObj.mass / o.o.physicsObj.mass))
+                            )
                 |> Seq.choose id
                 |> Seq.toArray
 
@@ -121,7 +125,8 @@ let collideAllObjects engine _ =
                     {obj.o.physicsObj with
                         pos =
                             obj.o.physicsObj.pos
-                            - (Vec2.map Units.floatToTyped v)}}
+                            // TODO: fix orientation of vectors for response
+                            + (Vec2.map Units.floatToTyped v)}}
 
 let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY
