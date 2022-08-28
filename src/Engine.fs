@@ -56,9 +56,9 @@ let updateGameObject scene gObj elem =
 
     applyStyles
         elem
-        {|left = $"{pos.x}px"
-          bottom = $"{pos.y}px"
-          transform = $"rotate({gObj.physicsObj.angle}rad)"|}
+        {|left = 0
+          bottom = 0
+          transform = $"translate({pos.x}px, -{pos.y}px) rotate({gObj.physicsObj.angle}rad)"|}
 
 let renderRoot engine =
     let elem = Option.get engine.mounted
@@ -105,7 +105,7 @@ let collideAllObjects engine _ =
                 |> Seq.map (fun o2 ->
                             match Collision.collideGObjs o.o o2.o with
                             | None -> None
-                            | Some rawMtv -> Some (rawMtv * (o2.o.physicsObj.mass / o.o.physicsObj.mass))
+                            | Some rawMtv -> Some (rawMtv * (o2.o.physicsObj.mass / (o2.o.physicsObj.mass + o.o.physicsObj.mass)))
                             )
                 |> Seq.choose id
                 |> Seq.toArray
@@ -125,8 +125,8 @@ let collideAllObjects engine _ =
                     {obj.o.physicsObj with
                         pos =
                             obj.o.physicsObj.pos
-                            // TODO: fix orientation of vectors for response
-                            + (Vec2.map Units.floatToTyped v)}}
+                            //+ (Vec2.map Units.floatToTyped v)
+                            }}
 
 let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY

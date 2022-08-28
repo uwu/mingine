@@ -65,10 +65,13 @@ let vo () = Vec2.origin
 
 let createEngine = Engine.createEngine
 
-let createScene obj =
-    let mutable this = Unchecked.defaultof<_>
+// these being here is needed for fun fable reasons
+let private scene_getOs () = Seq.toArray jsThis.objects
+let private scene_addO o = jsThis.objects.Add o
+let private scene_removeO o = jsThis.objects.Remove o
 
-    this <-
+let createScene obj =
+    let mutable this =
         {scale = backup obj?scale 1.<_>
          rootStyles = backup obj?rootStyles {||}
          objects = HashSet(backup obj?objects [||])
@@ -76,10 +79,17 @@ let createScene obj =
          canvasSize = backup obj?canvasSize Vec2.origin
          postTickHooks = backup obj?postTickHooks [||]}
 
-    this?getObjects <- (fun () -> Seq.toArray this.objects)
-    this?addObject <- this.objects.Add
-    this?removeObject <- this.objects.Remove
+    // theres a more efficient way to do this but im tired
+    this?__proto__?getObjects <- scene_getOs
+    this?__proto__?addObject <- scene_addO
+    this?__proto__?removeObject <- scene_removeO
 
+    this <- Visualiser.initVis this
+    
+    let update = Visualiser.createVisVec this Vec2.origin Vec2.origin
+    
+    window?REPORT_VEC <- update
+    
     this
 
 let createObject obj =

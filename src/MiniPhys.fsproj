@@ -6,6 +6,7 @@
     <ItemGroup>
         <Compile Include="Units.fs" />
         <Compile Include="Types.fs" />
+        <Compile Include="Visualiser.fs" />
         <Compile Include="ForceModels.fs" />
         <Compile Include="Simulator.fs" />
         <Compile Include="Collision.fs" />

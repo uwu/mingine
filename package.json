@@ -6,7 +6,7 @@
   "module": "dist/MiniPhys.js",
   "scripts": {
     "clean": "rm -rf dist node_modules src/bin src/obj",
-    "build": "dotnet fable src -s -o dist",
+    "build": "dotnet fable src -o dist",
     "deps": "dotnet tool restore && dotnet femto src",
     "prepublishOnly": "\"$npm_execpath\" run clean && \"$npm_execpath\" run build"
   },

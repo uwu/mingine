@@ -14,9 +14,8 @@
             ? mp.createColliderNull()
             : mp.createColliderComposite(
                 mp.createColliderCircle(o.radius, mp.vo()),
-                //mp.createColliderNull()
-                // TODO: why is rect-circle collision broken?
-                 mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius))
+                //mp.createColliderNull(),
+                mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius)),
             );
         
 		o.blOffset = mp.v(o.radius, o.radius);
@@ -33,7 +32,7 @@
 			// basic floor collision
 			([s, t]) => {
 				for (const o of s.objects) {
-					const p = o.physicsObj;
+					const p = o["o@"].physicsObj;
 
 					const newPos = p.pos.add(p.velocity.scale(t));
 
@@ -70,7 +69,7 @@
 				mass:  1, //Infinity,
 				// 1/12 m (h^2+w^2)
 				momentOfInertia: Infinity, // cba to type out full calc
-				//angVelocity: 1,
+				angVelocity: 1,
                 angle: 0.85,
 				pos: mp.v(1, 0.75)
 			}),

@@ -3,7 +3,6 @@ namespace MiniPhys.Types
 open System
 open System.Collections.Generic
 open FSharp.Data.UnitSystems.SI.UnitSymbols
-open MiniPhys.Types
 open MiniPhys.Types.Units
 
 /// 2d vector with float64 precision. Works with F# units of measure.

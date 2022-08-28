@@ -1,6 +1,8 @@
 module MiniPhys.Collision
 
 open MiniPhys.Types
+open Browser.Dom
+open Fable.Core.JsInterop
 
 let private getOsetRectPoints (bl, tr) pos angle =
     [bl
@@ -53,7 +55,7 @@ let minOptionsOr o1 o2 =
         | Some r2 -> Some r2
     | Some v1 ->
         match o2 with
-        | None -> None
+        | None -> Some v1
         | Some v2 -> Some(min2 v1 v2)
 
 /// takes an axis and a list of points, returns the min and max point of the projection
@@ -109,7 +111,7 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
             (rad + otherRad) - (abs vecToOther.len)
 
         if overlapAmount > 0.<_> then
-            Some(Units.typedToFloat overlapAmount, vecToOther.norm)
+            Some(Units.typedToFloat -overlapAmount, vecToOther * 1.<_>)
         else
             None
 
@@ -149,13 +151,16 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
                                (projectPolygonToAxis axis points)
                                (projectCircleToAxis axis (rad, center + pos))
                         
+                        // TODO: half the vectors are the right way and half are wrong. fix it.
                         match p with
                         | None -> None
-                        | Some rp -> Some((min rp (fst c)), axis)
+                        | Some rp -> Some(min2 (rp, -axis) c)
                     )
                 (Some(infinity, Vec2.origin))
 
-        minOptionsAnd circleSpecificCheck rectCheck
+        minOptionsAnd
+            circleSpecificCheck
+            rectCheck // i dont think this is necessary for collision but it is for accurate MTV!!
 
 /// gets MTV if a rect collider is colliding with another given collider
 let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
@@ -189,7 +194,9 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
                         
                         match p with
                         | None -> None
-                        | Some rp -> Some((min rp (fst c)), axis)
+                        | Some rp ->
+                            //Some((min rp (fst c)), -axis.perp)
+                            Some(min2 (rp, -axis) c)
                     )
                 (Some(infinity, Vec2.origin))
 
@@ -209,11 +216,17 @@ let rec collideColliders c1 c2 pos1 angle1 pos2 angle2 =
 
 /// gets resolved vector if two objects collide
 let collideGObjs gO1 gO2 =
-    collideColliders
-        gO1.collider
-        gO2.collider
-        gO1.physicsObj.pos
-        gO1.physicsObj.angle
-        gO2.physicsObj.pos
-        gO2.physicsObj.angle
-    |> Option.map resolveMTV
+    let mtv =
+            collideColliders
+                gO1.collider
+                gO2.collider
+                gO1.physicsObj.pos
+                gO1.physicsObj.angle
+                gO2.physicsObj.pos
+                gO2.physicsObj.angle
+            |> Option.map resolveMTV
+    
+    if gO1.id = "BOUNCING_BALL" then
+        Option.map window?REPORT_VEC mtv |> ignore
+    
+    mtv
