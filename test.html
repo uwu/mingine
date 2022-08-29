@@ -8,19 +8,19 @@
 	import * as mp from "./dist/JsApi.js"
 
 	window.mp = mp;
-	
+
 	function createTearDrop(o) {
-		o.collider = !o.collide 
-            ? mp.createColliderNull()
-            : mp.createColliderComposite(
-                mp.createColliderCircle(o.radius, mp.vo()),
-                //mp.createColliderNull(),
-                mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius)),
-            );
-        
+		o.collider = !o.collide
+			? mp.createColliderNull()
+			: mp.createColliderComposite(
+				mp.createColliderCircle(o.radius, mp.vo()),
+				//mp.createColliderNull(),
+				mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius)),
+			);
+
 		o.blOffset = mp.v(o.radius, o.radius);
 		return mp.createObject(o);
-    }
+	}
 
 	const renderScale = 100;
 
@@ -68,8 +68,8 @@
 				mass: Infinity,
 				// 1/12 m (h^2+w^2)
 				momentOfInertia: Infinity, // cba to type out full calc
-				angVelocity: 1,
-                angle: 0.85,
+				angVelocity: 0.75,
+				angle: 0.85,
 				pos: mp.v(1, 0.75)
 			}),
 
@@ -89,8 +89,8 @@
 				// mass^2 * area
 				momentOfInertia: (0.5 * 0.5) * (0.1 * 0.1),
 				pos: mp.v(0, 1.8),
-                
-                restitutionCoeff: 0.6,
+
+				restitutionCoeff: 0.6,
 
 				forces: [
 					mp.forceModels.weight(mp.consts.earthGravity),

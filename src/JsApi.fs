@@ -25,6 +25,12 @@ let private v2cm other = (jsThis: Vec2<_>) +* (other: Vec2<_>)
 let private v2sm other = (jsThis: Vec2<_>) * (other: float<_>)
 let private v2sd other = (jsThis: Vec2<_>) / other
 
+let private v2len () = (jsThis: Vec2<_>).len
+let private v2rot angle other = (jsThis: Vec2<_>).rotate angle other
+let private v2norm () = (jsThis: Vec2<_>).norm
+let private v2ang other = (jsThis: Vec2<_>).angleTo other
+let private v2perp () = (jsThis: Vec2<_>).perp
+
 Constructors.Object.assign (
     Vec2.origin?__proto__,
     {|add = v2a
@@ -33,7 +39,12 @@ Constructors.Object.assign (
       dot = v2dm
       cross = v2cm
       scale = v2sm
-      scdiv = v2sd|}
+      scdiv = v2sd
+      len = v2len
+      rotate = v2rot
+      norm = v2norm
+      angleTo = v2ang
+      perp = v2perp|}
 )
 |> ignore
 
