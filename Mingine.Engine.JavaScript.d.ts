@@ -110,7 +110,6 @@ interface Scene {
 	/**
 	 * a Fable HashSet of objects in the scene - dont attempt to use this
 	 * @internal
-	 * @private
 	 */
 	objects: unknown;
 	/** where the camera is placed */
@@ -161,14 +160,12 @@ interface Engine {
 	/**
 	 * used for timing, do not touch
 	 * @internal
-	 * @private
 	 */
 	lastTick: number;
 	/**
 	 * used for render ticks, do not touch
 	 * Fable Dictionary<WrappedGO, HTMLElement>
 	 * @internal
-	 * @private
 	 */
 	gObjMountedCache: unknown;
 
@@ -176,7 +173,6 @@ interface Engine {
 	 * used for collision, do not touch
 	 * Fable Dictionary<WrappedGO, WrappedGO list>
 	 * @internal
-	 * @private
 	 */
 	collisionCache: unknown
 	

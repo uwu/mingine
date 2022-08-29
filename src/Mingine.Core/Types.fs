@@ -1,4 +1,4 @@
-module Mingine.Types
+namespace Mingine.Types
 
 open System
 open System.Collections.Generic

@@ -2,8 +2,9 @@
   "name": "mingine-engine",
   "version": "1.0.0",
   "description": "A truly mini physics and game engine for the web",
-  "main": "dist/MiniPhys.js",
-  "module": "dist/MiniPhys.js",
+  "main": "dist/JavaScript.js",
+  "module": "dist/JavaScript.js",
+  "types": "Mingine.Engine.JavaScript.d.ts",
   "scripts": {
     "clean": "rm -rf dist node_modules src/*/bin src/*/obj",
     "build": "dotnet fable src/Mingine.Engine -o dist",

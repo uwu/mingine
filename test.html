@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 
 <body>
-<div id="miniphys-root"></div>
+<div id="mingine-root"></div>
 </body>
 
 <script type="module">
-	import * as mp from "./dist/JsApi.js"
-
-	window.mp = mp;
+	import * as mg from "./dist/JavaScript.js"
+    
+	window.mg = mg;
 
 	function createTearDrop(o) {
 		o.collider = !o.collide
-			? mp.createColliderNull()
-			: mp.createColliderComposite(
-				mp.createColliderCircle(o.radius, mp.vo()),
+			? mg.createColliderNull()
+			: mg.createColliderComposite(
+				mg.createColliderCircle(o.radius, mg.vo()),
 				//mp.createColliderNull(),
-				mp.createColliderRect(mp.vo(), mp.v(o.radius, o.radius)),
+				mg.createColliderRect(mg.vo(), mg.v(o.radius, o.radius)),
 			);
 
-		o.blOffset = mp.v(o.radius, o.radius);
-		return mp.createObject(o);
+		o.blOffset = mg.v(o.radius, o.radius);
+		return mg.createObject(o);
 	}
 
 	const renderScale = 100;
 
-	const engine = mp.createEngine(mp.createScene({
+	const engine = mg.createEngine(mg.createScene({
 		scale: renderScale,
 		rootStyles: {border: "1px solid gray"},
-		canvasSize: mp.v(2, 2),
+		canvasSize: mg.v(2, 2),
 		postTickHooks: [
 			// basic floor collision
 			([s, t]) => {
@@ -37,7 +37,7 @@
 					const newPos = p.pos.add(p.velocity.scale(t));
 
 					if (newPos.y < 0.1 && p.velocity.y < 0)
-						p.velocity = mp.v(p.velocity.x, p.velocity.y * -0.8);
+						p.velocity = mg.v(p.velocity.x, p.velocity.y * -0.8);
 				}
 			},
 
@@ -54,7 +54,7 @@
 		],
 
 		objects: [
-			mp.createRect({
+			mg.createRect({
 				id: "ROTATING_RECT",
 				width: 0.4,
 				height: 0.3,
@@ -70,7 +70,7 @@
 				momentOfInertia: Infinity, // cba to type out full calc
 				angVelocity: 0.75,
 				angle: 0.85,
-				pos: mp.v(1, 0.75)
+				pos: mg.v(1, 0.75)
 			}),
 
 			createTearDrop({
@@ -88,22 +88,22 @@
 				mass: 0.5,
 				// mass^2 * area
 				momentOfInertia: (0.5 * 0.5) * (0.1 * 0.1),
-				pos: mp.v(0, 1.8),
+				pos: mg.v(0, 1.8),
 
 				restitutionCoeff: 0.6,
 
 				forces: [
-					mp.forceModels.weight(mp.consts.earthGravity),
-					mp.forceModels.spring(5.5, mp.v(1, 1.5), mp.v(0.1, 0.1)),
-					mp.forceModels.stillAirDrag(mp.consts.earthAirDensity, Math.PI * 0.1 * 0.1, 0.47),
+					mg.forceModels.weight(mg.consts.earthGravity),
+					mg.forceModels.spring(5.5, mg.v(1, 1.5), mg.v(0.1, 0.1)),
+					mg.forceModels.stillAirDrag(mg.consts.earthAirDensity, Math.PI * 0.1 * 0.1, 0.47),
 
-					mp.forceModels.simpleDamping(0.25, 0.05)
+					mg.forceModels.simpleDamping(0.25, 0.05)
 				]
 			}),
 		]
 	}));
 
-	const root = document.getElementById("miniphys-root");
+	const root = document.getElementById("mingine-root");
 	engine.mount(root);
 	engine.start();
 </script>
