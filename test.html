@@ -43,13 +43,12 @@
 
 			// box collision test
 			([s, _t]) => {
-				// Array.from(s.objects);
 				const objects = s.getObjects();
 				const bouncingBall = objects.find(o => o.id === "BOUNCING_BALL");
 				const rotatingRect = objects.find(o => o.id === "ROTATING_RECT");
 
 				rotatingRect.styles.borderColor =
-					mp.areColliding(bouncingBall, rotatingRect)
+					engine.queryCollision(bouncingBall, rotatingRect)
 						? "red" : "";
 			}
 		],

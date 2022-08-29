@@ -36,6 +36,12 @@ type EngineWrap =
      // F# map does not compile to ES map, but Dictionary does.
      mutable gObjMountedCache: Dictionary<WrappedGObj, HTMLElement>
 
+     // this cache is purely to provide less crappy collision queries to the API
+     // if you do not query collisions the building and storage of this cache is
+     // pure cpu and memory overhead. I don't care enough to provide a way to disable it.
+     mutable collisionCache: Dictionary<WrappedGObj, WrappedGObj list>
+     queryCollision: WrappedGObj -> WrappedGObj -> bool
+     
      mutable start: StartOpts option -> unit
      mutable stop: unit -> unit
      mutable mount: HTMLElement -> unit
@@ -96,6 +102,8 @@ let renderGameObjects engine =
             engine.gObjMountedCache.Remove kv.Key |> ignore
 
 let collideAllObjects engine _ =
+    engine.collisionCache.Clear()
+
     let objects =
         engine.scene.objects
         |> Seq.choose (fun o ->
@@ -106,6 +114,10 @@ let collideAllObjects engine _ =
                             match Collision.collideGObjs o.o o2.o with
                             | None -> None
                             | Some rawMtv ->
+                                match engine.collisionCache.TryGetValue o with
+                                | true, list -> engine.collisionCache[o] <- o2::list
+                                | _ -> engine.collisionCache[o] <- [o2]
+                                
                                 if (abs o2.o.physicsObj.mass) = (infinity * 1.<_>)
                                 then Some rawMtv // prevent (NaN, NaN)
                                 else Some (rawMtv * (o2.o.physicsObj.mass / (o2.o.physicsObj.mass + o.o.physicsObj.mass)))
@@ -167,6 +179,11 @@ let createEngine scene =
          lastTick = 0
 
          gObjMountedCache = Dictionary()
+         collisionCache = Dictionary()
+         
+         queryCollision = (fun o1 o2 ->
+             (this.collisionCache.ContainsKey o1 && (this.collisionCache[o1] |> List.contains o2))
+             || (this.collisionCache.ContainsKey o2 && (this.collisionCache[o2] |> List.contains o1)))
 
          mount = (fun elem -> this.mounted <- Some elem)
 
