@@ -1,13 +1,13 @@
 {
-  "name": "mini-phys",
+  "name": "mingine-engine",
   "version": "1.0.0",
   "description": "A truly mini physics and game engine for the web",
   "main": "dist/MiniPhys.js",
   "module": "dist/MiniPhys.js",
   "scripts": {
-    "clean": "rm -rf dist node_modules src/bin src/obj",
-    "build": "dotnet fable src -o dist",
-    "deps": "dotnet tool restore && dotnet femto src",
+    "clean": "rm -rf dist node_modules src/*/bin src/*/obj",
+    "build": "dotnet fable src/Mingine.Engine -o dist",
+    "deps": "dotnet tool restore && dotnet femto src/Mingine.Engine",
     "prepublishOnly": "\"$npm_execpath\" run clean && \"$npm_execpath\" run build"
   },
   "author": "Yellowsink",

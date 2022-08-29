@@ -1,11 +1,12 @@
-module MiniPhys.Engine
+module Mingine.Engine
 
 open System.Collections.Generic
 open Browser
 open Browser.Types
 open Fable.Core.JS
 open Fable.Core.JsInterop
-open MiniPhys.Types
+open Mingine.Types
+open Mingine.Physics
 open FSharp.Collections
 
 let requiredRootStyles =

@@ -1,4 +1,4 @@
-module MiniPhys.Types.Units
+module Mingine.Units
 
 open System
 
@@ -28,3 +28,5 @@ let degToRad (d: float<deg>) = d / degPerRad
 
 [<Measure>]
 type px
+
+let sq<[<Measure>] 'u> (v1: float<'u>) (v2: float<'u>) = v1 * v2

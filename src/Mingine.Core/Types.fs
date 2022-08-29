@@ -1,9 +1,9 @@
-namespace MiniPhys.Types
+module Mingine.Types
 
 open System
 open System.Collections.Generic
 open FSharp.Data.UnitSystems.SI.UnitSymbols
-open MiniPhys.Types.Units
+open Mingine.Units
 
 /// 2d vector with float64 precision. Works with F# units of measure.
 type Vec2<[<Measure>] 'u> =
@@ -110,6 +110,7 @@ and PhysicsObj =
      mass: float<kg>
      velocity: Vec2<m / s>
      accel: Vec2<m / s^2>
+     
      forces: ForceCalculator[]
 
      momentOfInertia: float<kg m^2>

@@ -1,16 +1,17 @@
-module MiniPhys.Simulator
+module Mingine.Physics.Simulator
 
-open Fable.Core.JS
-open MiniPhys.Types
-open MiniPhys.Types.Units
-//open FSharp.Data.UnitSystems.SI.UnitSymbols
+open System
+open Mingine.Types
+open Mingine.Units
+open FSharp.Data.UnitSystems.SI.UnitSymbols
+open FSharp.Collections
 
-// huge shoutout to
-// http://buildnewgames.com/gamephysics/
+// workaround for F# compiler internal error kekw
+let private vecOrigin = { x = 0.<_>; y = 0.<_> } // Vec2.origin
 
 let guardFloatInstability<[<Measure>] 'u> =
     mapFloatTyped<'u> (fun value ->
-        if isNaN value || Math.abs value = Infinity then
+        if Double.IsNaN value || Math.Abs value = infinity then
             0.
         else
             value)
@@ -18,19 +19,19 @@ let guardFloatInstability<[<Measure>] 'u> =
 let guardForceTorqueInstability (f, t) =
     Vec2.map guardFloatInstability f, guardFloatInstability t
 
-let calcForcesAndTorques gObj timeStep =
+let calcForcesAndTorques (gObj: PhysicsObj) (timeStep: float<s>) =
     let forcesAndTorques =
         gObj.forces
-        |> FSharp.Collections.Array.map (fun f -> f (gObj, timeStep))
-
+        |> Array.map (fun f -> f (gObj, timeStep))
+    
     if forcesAndTorques.Length = 0 then
-        Vec2.origin, 0.<_>
+        vecOrigin, 0.<_>
     else
         forcesAndTorques
         // remove NaN and +-Infinity forces and torques
-        |> FSharp.Collections.Array.map guardForceTorqueInstability
+        |> Array.map guardForceTorqueInstability
         // sum all forces and torques
-        |> FSharp.Collections.Array.reduce (fun (f1, t1) (f2, t2) -> (f1 + f2, t1 + t2))
+        |> Array.reduce (fun (f1, t1) (f2, t2) -> (f1 + f2, t1 + t2))
 
 let updateObjectPos gObj timeStep =
     // update transform from last tick info

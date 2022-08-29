@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="Simulator.fs" />
+      <Compile Include="Collision.fs" />
+      <Compile Include="ForceModels.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Mingine.Core\Mingine.Core.fsproj" />
+    </ItemGroup>
+
+    <!-- Add source files to "fable" folder in Nuget package -->
+    <ItemGroup>
+        <Content Include="*.fsproj; **\*.fs; **\*.fsi" PackagePath="fable\" />
+        <Content Remove="obj\**\*" />
+    </ItemGroup>
+
+</Project>

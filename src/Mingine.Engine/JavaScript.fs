@@ -1,12 +1,17 @@
-module MiniPhys.JsApi
+module Mingine.Engine.JavaScript
 
 open System.Collections.Generic
 open Fable.Core
 open Fable.Core.JS
 open Browser.Dom
 open Fable.Core.DynamicExtensions
-open MiniPhys.Types
+open Mingine.Types
+open Mingine
+open Mingine.Physics
 open Fable.Core.JsInterop
+
+// workaround for F# compiler internal error kekw
+let private vecOrigin = { x = 0.<_>; y = 0.<_> } // Vec2.origin
 
 let private nothingFunc () = ()
 
@@ -14,7 +19,7 @@ let private nothingFunc () = ()
 let private tsTag: string =
     window?Symbol?toStringTag
 
-Vec2.origin?__proto__.[tsTag] <- "Vec2"
+vecOrigin?__proto__.[tsTag] <- "Vec2"
 NullCollider?__proto__.[tsTag] <- "Collider"
 
 let private v2a other = (jsThis: Vec2<_>) + other
@@ -32,7 +37,7 @@ let private v2ang other = (jsThis: Vec2<_>).angleTo other
 let private v2perp () = (jsThis: Vec2<_>).perp
 
 Constructors.Object.assign (
-    Vec2.origin?__proto__,
+    vecOrigin?__proto__,
     {|add = v2a
       sub = v2s
       neg = v2neg
@@ -72,7 +77,7 @@ let v x y =
 
     {x = x; y = y}
 
-let vo () = Vec2.origin
+let vo () = vecOrigin
 
 let createEngine = Engine.createEngine
 
@@ -86,8 +91,8 @@ let createScene obj =
         {scale = backup obj?scale 1.<_>
          rootStyles = backup obj?rootStyles {||}
          objects = HashSet(backup obj?objects [||])
-         renderOffset = backup obj?renderOffset Vec2.origin
-         canvasSize = backup obj?canvasSize Vec2.origin
+         renderOffset = backup obj?renderOffset vecOrigin
+         canvasSize = backup obj?canvasSize vecOrigin
          postTickHooks = backup obj?postTickHooks [||]}
 
     // theres a more efficient way to do this but im tired
@@ -97,7 +102,7 @@ let createScene obj =
 
     // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES
     //this <- Visualiser.initVis this
-    //window?REPORT_VEC <- Visualiser.createVisVec this Vec2.origin Vec2.origin
+    //window?REPORT_VEC <- Visualiser.createVisVec this vecOrigin vecOrigin
     
     this
 
@@ -121,10 +126,10 @@ let createObject obj =
          styles = backup obj?styles {||}
          collider = backup obj?collider NullCollider
          physicsObj =
-            {pos = backup obj?pos Vec2.origin
+            {pos = backup obj?pos vecOrigin
              mass = obj?mass
-             velocity = backup obj?velocity Vec2.origin
-             accel = backup obj?accel Vec2.origin
+             velocity = backup obj?velocity vecOrigin
+             accel = backup obj?accel vecOrigin
              forces = backup obj?forces [||]
              momentOfInertia = obj?momentOfInertia
              angle = backup obj?angle 0.<_>
@@ -138,7 +143,7 @@ let createCircle obj =
         failwith "circles must have a radius!"
 
     obj?collider <- if obj?collide then
-                        CircularCollider(obj?radius, Vec2.origin)
+                        CircularCollider(obj?radius, vecOrigin)
                     else
                         NullCollider
 
