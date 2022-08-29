@@ -10,7 +10,7 @@ let args =
 
 match args with
 | IgnoreCase "publish"::_ ->
-    pushFableNuget "src/Mingine.Core.fsproj" [] doNothing
-    pushFableNuget "src/Mingine.Physics.fsproj" [] doNothing
-    pushFableNuget "src/Mingine.Engine.fsproj" [] doNothing
+    pushFableNuget "src/Mingine.Core/Mingine.Core.fsproj" [] doNothing
+    pushFableNuget "src/Mingine.Physics/Mingine.Physics.fsproj" [] doNothing
+    pushFableNuget "src/Mingine.Engine/Mingine.Engine.fsproj" [] doNothing
 | _ -> ()

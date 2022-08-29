@@ -1,7 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <Description>The core of Mingine - you probably shouldn't add this directly</Description>
+        <Version>1.0.0</Version>
+        <PackageVersion>1.0.0</PackageVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,5 +17,4 @@
         <Content Include="*.fsproj; **\*.fs; **\*.fsi" PackagePath="fable\" />
         <Content Remove="obj\**\*" />
     </ItemGroup>
-
 </Project>

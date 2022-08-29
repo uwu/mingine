@@ -1,2 +1,2 @@
 ### 1.0.0
- - Initial release
+ - Hello World! Mingine is now on NuGet and NPM.

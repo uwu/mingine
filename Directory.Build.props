@@ -1,0 +1,26 @@
+<!-- this file contains stuff for build.fsx I think? -->
+
+<Project>
+    <!-- NuGet Metadata -->
+    <PropertyGroup>
+        <PackageProjectUrl>https://github.com/uwu/mingine</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/uwu/mingine</RepositoryUrl>
+        <PackageLicenseFile>UNLICENSE</PackageLicenseFile>
+        <!--<PackageIcon>icon.png</PackageIcon>-->
+        <PackageTags>fsharp;fable;physics;game;web</PackageTags>
+        <Authors>Yellowsink</Authors>
+
+        <!-- For SourceLink. See: https://github.com/dotnet/sourcelink#using-source-link-in-net-projects -->
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
+    <ItemGroup>
+        <!--<None Include="$(MSBuildThisFileDirectory)\icon.png" Pack="true" Visible="false" PackagePath="" />-->
+        <None Include="$(MSBuildThisFileDirectory)\UNLICENSE" Visible="false" Pack="true" PackagePath="" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    </ItemGroup>
+</Project>

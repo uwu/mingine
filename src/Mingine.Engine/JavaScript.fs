@@ -1,4 +1,4 @@
-module Mingine.Engine.JavaScript
+module Mingine.JavaScript
 
 open System.Collections.Generic
 open Fable.Core
