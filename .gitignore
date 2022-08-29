@@ -1,5 +1,6 @@
 # dist
 dist/
+distbundle.js
 # tooling dirs
 .idea/
 bin/

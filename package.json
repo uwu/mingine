@@ -2,15 +2,19 @@
   "name": "mingine-engine",
   "version": "1.0.0",
   "description": "A truly mini physics and game engine for the web",
-  "main": "dist/JavaScript.js",
-  "module": "dist/JavaScript.js",
+  "main": "distbundle.js",
+  "module": "distbundle.js",
   "types": "Mingine.Engine.JavaScript.d.ts",
   "scripts": {
-    "clean": "rm -rf dist node_modules src/*/bin src/*/obj",
-    "build": "dotnet fable src/Mingine.Engine -o dist",
-    "deps": "dotnet tool restore && dotnet femto src/Mingine.Engine",
-    "prepublishOnly": "\"$npm_execpath\" run clean && \"$npm_execpath\" run build"
+    "clean": "rm -rf dist node_modules src/*/bin src/*/obj distbundle.js",
+    "build": "dotnet fable src/Mingine.Engine -o dist && esbuild dist/JavaScript.js --outfile=distbundle.js --bundle --format=esm",
+    "deps": "\"$npm_execpath\" i && dotnet tool restore && dotnet femto src/Mingine.Engine",
+    "prepublishOnly": "\"$npm_execpath\" run clean && \"$npm_execpath\" run deps && \"$npm_execpath\" run build"
   },
   "author": "Yellowsink",
-  "license": "Unlicense"
+  "license": "Unlicense",
+  "devDependencies": {
+    "esbuild": "^0.15.5"
+  },
+  "repository": "github:uwu/mingine"
 }
