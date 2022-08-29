@@ -84,11 +84,9 @@ let createScene obj =
     this?__proto__?addObject <- scene_addO
     this?__proto__?removeObject <- scene_removeO
 
-    this <- Visualiser.initVis this
-    
-    let update = Visualiser.createVisVec this Vec2.origin Vec2.origin
-    
-    window?REPORT_VEC <- update
+    // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES
+    //this <- Visualiser.initVis this
+    //window?REPORT_VEC <- Visualiser.createVisVec this Vec2.origin Vec2.origin
     
     this
 
@@ -120,7 +118,8 @@ let createObject obj =
              momentOfInertia = obj?momentOfInertia
              angle = backup obj?angle 0.<_>
              angVelocity = backup obj?angVelocity 0.<_>
-             angAccel = backup obj?angAccel 0.<_>}}
+             angAccel = backup obj?angAccel 0.<_>
+             restitutionCoeff = backup obj?restitutionCoeff 1.}}
     |> unwrapWrapped
 
 let createCircle obj =

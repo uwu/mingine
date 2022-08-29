@@ -115,7 +115,9 @@ and PhysicsObj =
      momentOfInertia: float<kg m^2>
      angle: float<rad> // theta
      angVelocity: float<rad / s> // omega
-     angAccel: float<rad / s^2>} // alpha
+     angAccel: float<rad / s^2> // alpha
+     
+     restitutionCoeff: float}
 
 /// Represents a renderable object in the game
 type GameObj =

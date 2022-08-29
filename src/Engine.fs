@@ -98,35 +98,47 @@ let renderGameObjects engine =
 let collideAllObjects engine _ =
     let objects =
         engine.scene.objects
-        |> Seq.map (fun o ->
+        |> Seq.choose (fun o ->
             let objs =
                 engine.scene.objects
                 |> Seq.except [|o|]
                 |> Seq.map (fun o2 ->
                             match Collision.collideGObjs o.o o2.o with
                             | None -> None
-                            | Some rawMtv -> Some (rawMtv * (o2.o.physicsObj.mass / (o2.o.physicsObj.mass + o.o.physicsObj.mass)))
+                            | Some rawMtv ->
+                                if (abs o2.o.physicsObj.mass) = (infinity * 1.<_>)
+                                then Some rawMtv // prevent (NaN, NaN)
+                                else Some (rawMtv * (o2.o.physicsObj.mass / (o2.o.physicsObj.mass + o.o.physicsObj.mass)))
                             )
                 |> Seq.choose id
                 |> Seq.toArray
 
-            o,
             if objs.Length = 0 then
-                Vec2.origin
+                None
             else
-                objs
-                |> Collections.Array.reduce (Vec2<_>.map2 min))
+                Some (
+                    o,
+                    objs
+                    |> Collections.Array.reduce (Vec2<_>.map2 min)
+                )
+            )
 
     // mutability bad but also itd be more comfy :skull:
     for obj, v in objects do
+        // reflect velocity along our axis
+        // https://math.stackexchange.com/a/13263
+        let d = obj.o.physicsObj.velocity * 1.<_>
+        let n = v.norm
+        let r = d - ((d * n) * 2.) * n
+        
         obj.o <-
             {obj.o with
                 physicsObj =
                     {obj.o.physicsObj with
+                        velocity = r * 1.<_> * obj.o.physicsObj.restitutionCoeff
                         pos =
                             obj.o.physicsObj.pos
-                            //+ (Vec2.map Units.floatToTyped v)
-                            }}
+                            + (Vec2.map Units.floatToTyped v)}}
 
 let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY

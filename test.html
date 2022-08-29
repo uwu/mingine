@@ -66,7 +66,7 @@
 					border: "1px solid black"
 				},
 				collide: true,
-				mass:  1, //Infinity,
+				mass: Infinity,
 				// 1/12 m (h^2+w^2)
 				momentOfInertia: Infinity, // cba to type out full calc
 				angVelocity: 1,
@@ -90,10 +90,12 @@
 				// mass^2 * area
 				momentOfInertia: (0.5 * 0.5) * (0.1 * 0.1),
 				pos: mp.v(0, 1.8),
+                
+                restitutionCoeff: 0.6,
 
 				forces: [
 					mp.forceModels.weight(mp.consts.earthGravity),
-					mp.forceModels.spring(5, mp.v(1, 1.5), mp.v(0.1, 0.1)),
+					mp.forceModels.spring(5.5, mp.v(1, 1.5), mp.v(0.1, 0.1)),
 					mp.forceModels.stillAirDrag(mp.consts.earthAirDensity, Math.PI * 0.1 * 0.1, 0.47),
 
 					mp.forceModels.simpleDamping(0.25, 0.05)

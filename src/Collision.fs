@@ -1,8 +1,6 @@
 module MiniPhys.Collision
 
 open MiniPhys.Types
-open Browser.Dom
-open Fable.Core.JsInterop
 
 let private getOsetRectPoints (bl, tr) pos angle =
     [bl
@@ -218,17 +216,11 @@ let rec collideColliders c1 c2 pos1 angle1 pos2 angle2 =
 
 /// gets resolved vector if two objects collide
 let collideGObjs gO1 gO2 =
-    let mtv =
-            collideColliders
-                gO1.collider
-                gO2.collider
-                gO1.physicsObj.pos
-                gO1.physicsObj.angle
-                gO2.physicsObj.pos
-                gO2.physicsObj.angle
-            |> Option.map resolveMTV
-    
-    if gO1.id = "BOUNCING_BALL" then
-        Option.map window?REPORT_VEC mtv |> ignore
-    
-    mtv
+    collideColliders
+        gO1.collider
+        gO2.collider
+        gO1.physicsObj.pos
+        gO1.physicsObj.angle
+        gO2.physicsObj.pos
+        gO2.physicsObj.angle
+    |> Option.map resolveMTV
