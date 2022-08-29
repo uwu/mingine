@@ -65,7 +65,7 @@ let updateGameObject scene gObj elem =
         elem
         {|left = 0
           bottom = 0
-          transform = $"translate({pos.x}px, -{pos.y}px) rotate({gObj.physicsObj.angle}rad)"|}
+          transform = $"translate({pos.x}px, {-pos.y}px) rotate({gObj.physicsObj.angle}rad)"|}
 
 let renderRoot engine =
     let elem = Option.get engine.mounted

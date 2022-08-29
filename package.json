@@ -1,6 +1,6 @@
 {
   "name": "mingine-engine",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A truly mini physics and game engine for the web",
   "main": "distbundle.js",
   "module": "distbundle.js",
@@ -16,5 +16,6 @@
   "devDependencies": {
     "esbuild": "^0.15.5"
   },
-  "repository": "github:uwu/mingine"
+  "repository": "github:uwu/mingine",
+  "type": "module"
 }

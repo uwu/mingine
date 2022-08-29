@@ -194,7 +194,7 @@ interface Engine {
 
 type PostTickHook = (x: [Scene, number]) => void;
 
-type ForceCalculator = (x: [GameObject, number]) => [Vec2, number];
+type ForceCalculator = (x: [PhysicsObject, number]) => [Vec2, number];
 
 /** creates a 2d vector */
 export function v(x: number, y: number): Vec2;
@@ -334,7 +334,7 @@ export function createColliderRect(bottomLeft: Vec2Like, topRight: Vec2Like): Co
 /** contains models of real forces */
 export const forceModels: {
 	/** models gravity */
-	weight(gravity: number): ForceCalculator;
+	weight(gravity: Vec2Like): ForceCalculator;
 	/** models a spring */
 	spring(springConst: number, restPos: Vec2Like, connectionOset: Vec2Like): ForceCalculator;
 	/** models air resistance */
