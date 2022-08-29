@@ -12,30 +12,32 @@ let private getOsetRectPoints (bl, tr) pos angle =
     |> List.map (fun p -> pos + (p.rotate angle Vec2.origin))
 
 let private getRectNormals (bl, tr) angle =
-    let tl = {x = bl.x; y = tr.y}
+    //let tl = {x = bl.x; y = tr.y}
     let br = {x = tr.x; y = bl.y}
-    let planeT = tr - tl
+    //let planeT = tr - tl
     let planeR = tr - br
     let planeB = br - bl
-    let planeL = tl - bl
+    //let planeL = tl - bl
 
-    let rot1 =
-        (planeT.rotate angle Vec2.origin).perp.norm
+    (*let normT =
+        -(planeT.rotate angle Vec2.origin).perp.norm*)
 
-    let rot2 =
+    let normR =
         (planeR.rotate angle Vec2.origin).perp.norm
 
-    let rot3 =
+    let normB =
         (planeB.rotate angle Vec2.origin).perp.norm
 
-    let rot4 =
-        (planeL.rotate angle Vec2.origin).perp.norm
+    (*let normL =
+        -(planeL.rotate angle Vec2.origin).perp.norm*)
 
-    //rot1, rot2, rot3, rot4
-    [|rot1; rot2; rot3; rot4|]
+    [|(*normT;*) normR; normB(*; normL*)|]
 
-let private min2 v1 v2 =
-    if (fst v1) < (fst v2) then
+
+let private absMin v1 v2 = if (abs v1) < (abs v2) then v1 else v2
+
+let private absMin2 v1 v2 =
+    if (abs (fst v1)) < (abs (fst v2)) then
         v1
     else v2
 
@@ -45,7 +47,7 @@ let minOptionsAnd o1 o2 =
     | Some v1 ->
         match o2 with
         | None -> None
-        | Some v2 -> Some(min2 v1 v2)
+        | Some v2 -> Some(absMin2 v1 v2)
         
 let minOptionsOr o1 o2 =
     match o1 with
@@ -56,7 +58,7 @@ let minOptionsOr o1 o2 =
     | Some v1 ->
         match o2 with
         | None -> Some v1
-        | Some v2 -> Some(min2 v1 v2)
+        | Some v2 -> Some(absMin2 v1 v2)
 
 /// takes an axis and a list of points, returns the min and max point of the projection
 let projectPolygonToAxis (axis: Vec2<_>) (points: list<_>) =
@@ -91,7 +93,10 @@ let checkProjectionOverlap (min1, max1) (min2, max2) =
 /// checks if two projections overlap and returns how much they overlap if they do
 let getProjectionOverlap (min1, max1) (min2, max2) =
     if checkProjectionOverlap (min1, max1) (min2, max2) then
-        (min max1 max2) - (max min1 min2) |> Some
+        // textbook impl, but this is always positive!
+        // Some <| (min max1 max2) - (max min1 min2)
+        // my impl after some experimenting, can return negative!
+        Some <| absMin (min2 - max1) (max2 - min1)
     else
         None
 
@@ -150,11 +155,10 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
                             getProjectionOverlap
                                (projectPolygonToAxis axis points)
                                (projectCircleToAxis axis (rad, center + pos))
-                        
-                        // TODO: half the vectors are the right way and half are wrong. fix it.
+
                         match p with
                         | None -> None
-                        | Some rp -> Some(min2 (rp, -axis) c)
+                        | Some rp -> Some(absMin2 (rp, -axis) c)
                     )
                 (Some(infinity, Vec2.origin))
 
@@ -194,9 +198,7 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
                         
                         match p with
                         | None -> None
-                        | Some rp ->
-                            //Some((min rp (fst c)), -axis.perp)
-                            Some(min2 (rp, -axis) c)
+                        | Some rp -> Some(absMin2 (rp, axis) c)
                     )
                 (Some(infinity, Vec2.origin))
 
