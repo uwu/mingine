@@ -13,7 +13,12 @@ open Fable.Core.JsInterop
 // workaround for F# compiler internal error kekw
 let private vecOrigin = { x = 0.<_>; y = 0.<_> } // Vec2.origin
 
-let private nothingFunc () = ()
+[<Emit("function(...a){return($0)(this, ...a)}")>]
+let private captureThis<'this, 'a, 'r> (_: 'this -> 'a -> 'r): 'a -> 'r  = jsNative
+
+///////////////////////////////////////
+// BEGIN IMPERATIVE MODULE LOAD CODE //
+///////////////////////////////////////
 
 // its a symbol not a string but its gotta be usable for indexing
 let private tsTag: string =
@@ -22,36 +27,45 @@ let private tsTag: string =
 vecOrigin?__proto__.[tsTag] <- "Vec2"
 NullCollider?__proto__.[tsTag] <- "Collider"
 
-let private v2a other = (jsThis: Vec2<_>) + other
-let private v2s other = (jsThis: Vec2<_>) - other
-let private v2neg () = -(jsThis: Vec2<_>)
-let private v2dm other = (jsThis: Vec2<_>) * (other: Vec2<_>)
-let private v2cm other = (jsThis: Vec2<_>) +* (other: Vec2<_>)
-let private v2sm other = (jsThis: Vec2<_>) * (other: float<_>)
-let private v2sd other = (jsThis: Vec2<_>) / other
-
-let private v2len () = (jsThis: Vec2<_>).len
+// see below comment for why pre-captureThis method used
 let private v2rot angle other = (jsThis: Vec2<_>).rotate angle other
-let private v2norm () = (jsThis: Vec2<_>).norm
-let private v2ang other = (jsThis: Vec2<_>).angleTo other
-let private v2perp () = (jsThis: Vec2<_>).perp
 
 Constructors.Object.assign (
     vecOrigin?__proto__,
-    {|add = v2a
-      sub = v2s
-      neg = v2neg
-      dot = v2dm
-      cross = v2cm
-      scale = v2sm
-      scdiv = v2sd
-      len = v2len
-      rotate = v2rot
-      norm = v2norm
-      angleTo = v2ang
-      perp = v2perp|}
+    {|add = captureThis (fun (this: Vec2<_>) other -> this + other)
+      sub = captureThis (fun (this: Vec2<_>) other -> this - other)
+      neg = captureThis (fun (this: Vec2<_>) () -> -this)
+      dot = captureThis (fun (this: Vec2<_>) (other: Vec2<_>) -> this * other)
+      cross = captureThis (fun (this: Vec2<_>) (other: Vec2<_>) -> this +* other)
+      scale = captureThis (fun (this: Vec2<_>) (other: float) -> this * other)
+      scdiv = captureThis (fun (this: Vec2<_>) other -> this / other)
+      len = captureThis (fun (this: Vec2<_>) () -> this.len)
+      rotate = v2rot // uncurrying screws me otherwise
+      norm = captureThis (fun (this: Vec2<_>) () -> this.norm)
+      angleTo = captureThis (fun (this: Vec2<_>) other -> this.angleTo other)
+      perp = captureThis (fun (this: Vec2<_>) () -> this.perp)|}
 )
 |> ignore
+
+{ pos = vecOrigin
+  mass = 0.<_>
+  velocity = vecOrigin
+  accel = vecOrigin
+  forces = [||]
+  momentOfInertia = 0.<_>
+  angle = 0.<_>
+  angVelocity = 0.<_>
+  angAccel = 0.<_>
+  restitutionCoeff = 0. }
+    ?__proto__?impulse <-
+        captureThis (fun this force ->
+            Constructors.Object.assign(this, Simulator.impulse force this) |> ignore
+            )
+
+/////////////////////////////////////
+// END IMPERATIVE MODULE LOAD CODE //
+//       BEGIN API EXPORTS         //
+/////////////////////////////////////
 
 let inline private backup v b = if isNullOrUndefined v then b else v
 
@@ -77,14 +91,17 @@ let v x y =
 
     {x = x; y = y}
 
+let vAngle theta len =
+    if jsTypeof theta <> "number" then
+        failwith "cannot create a vector from a non-number angle!"
+    
+    let scale = if jsTypeof len = "number" then len else 1.
+    
+    (Vec2<_>.atAngle theta) * scale
+
 let vo () = vecOrigin
 
 let createEngine = Engine.createEngine
-
-// these being here is needed for fun fable reasons
-let private scene_getOs () = Seq.toArray jsThis.objects
-let private scene_addO o = jsThis.objects.Add o
-let private scene_removeO o = jsThis.objects.Remove o
 
 let createScene obj =
     let mutable this =
@@ -96,9 +113,9 @@ let createScene obj =
          postTickHooks = backup obj?postTickHooks [||]}
 
     // theres a more efficient way to do this but im tired
-    this?__proto__?getObjects <- scene_getOs
-    this?__proto__?addObject <- scene_addO
-    this?__proto__?removeObject <- scene_removeO
+    this?__proto__?getObjects <- captureThis (fun this () -> Seq.toArray this.objects)
+    this?__proto__?addObject <- captureThis (fun this o -> this.objects.Add o)
+    this?__proto__?removeObject <- captureThis (fun this o -> this.objects.Remove o)
 
     // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES
     //this <- Visualiser.initVis this

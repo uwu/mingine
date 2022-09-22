@@ -1,3 +1,9 @@
+### pending
+- Cleanup engine code using `this`
+- Add `Vec2.atAngle` / `mg.vAngle()`
+- Add `Simulator.impulse` / `physicsObj.prototype.impulse()`
+- Un-expose some internal `Simulator` funcs
+
 ### 1.0.1
 - Fix some wrong typedefs
 - Fix y values below 0 breaking in `Engine.updateGameObject`

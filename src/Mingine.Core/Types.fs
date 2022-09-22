@@ -49,6 +49,8 @@ type Vec2<[<Measure>] 'u> =
     static member (/)(s, v) = (Vec2<'u>.smap (/)) s v
     
     
+    static member atAngle (angle: float<rad>) : Vec2<1> = { x = cos (-angle * 1.<_>); y = sin (-angle * 1.<_>) }
+    
     member vec.len = // ew
         let untypedVec =
             Vec2<'u>.map typedToFloat vec
