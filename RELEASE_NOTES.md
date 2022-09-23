@@ -3,6 +3,7 @@
 - Add `Vec2.atAngle` / `mg.vAngle()`
 - Add `Simulator.impulse` / `physicsObj.prototype.impulse()`
 - Un-expose some internal `Simulator` funcs
+- More toString tags on object prototypes, which should improve debugging experience in some browsers
 
 ### 1.0.1
 - Fix some wrong typedefs

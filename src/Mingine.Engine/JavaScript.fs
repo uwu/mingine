@@ -24,14 +24,19 @@ let private captureThis<'this, 'a, 'r> (_: 'this -> 'a -> 'r): 'a -> 'r  = jsNat
 let private tsTag: string =
     window?Symbol?toStringTag
 
-vecOrigin?__proto__.[tsTag] <- "Vec2"
-NullCollider?__proto__.[tsTag] <- "Collider"
+jsConstructor<Vec2<_>>?prototype.[tsTag] <- "Vec2"
+jsConstructor<Collider>?prototype.[tsTag] <- "Collider"
+jsConstructor<PhysicsObj>?prototype.[tsTag] <- "PhysicsObj"
+jsConstructor<GameObj>?prototype.[tsTag] <- "GameObj (raw)"
+jsConstructor<WrappedGObj>?prototype.[tsTag] <- "GameObj (wrapped)"
+jsConstructor<Scene>?prototype.[tsTag] <- "Scene"
+jsConstructor<Engine.EngineWrap>?prototype.[tsTag] <- "Engine"
 
 // see below comment for why pre-captureThis method used
 let private v2rot angle other = (jsThis: Vec2<_>).rotate angle other
 
 Constructors.Object.assign (
-    vecOrigin?__proto__,
+    jsConstructor<Vec2<_>>?prototype,
     {|add = captureThis (fun (this: Vec2<_>) other -> this + other)
       sub = captureThis (fun (this: Vec2<_>) other -> this - other)
       neg = captureThis (fun (this: Vec2<_>) () -> -this)
@@ -47,17 +52,7 @@ Constructors.Object.assign (
 )
 |> ignore
 
-{ pos = vecOrigin
-  mass = 0.<_>
-  velocity = vecOrigin
-  accel = vecOrigin
-  forces = [||]
-  momentOfInertia = 0.<_>
-  angle = 0.<_>
-  angVelocity = 0.<_>
-  angAccel = 0.<_>
-  restitutionCoeff = 0. }
-    ?__proto__?impulse <-
+jsConstructor<PhysicsObj>?prototype?impulse <-
         captureThis (fun this force ->
             Constructors.Object.assign(this, Simulator.impulse force this) |> ignore
             )
@@ -103,19 +98,18 @@ let vo () = vecOrigin
 
 let createEngine = Engine.createEngine
 
+jsConstructor<Scene>?prototype?getObjects <- captureThis (fun this () -> Seq.toArray this.objects)
+jsConstructor<Scene>?prototype?addObject <- captureThis (fun this o -> this.objects.Add o)
+jsConstructor<Scene>?prototype?removeObject <- captureThis (fun this o -> this.objects.Remove o)
+
 let createScene obj =
-    let mutable this =
+    let this =
         {scale = backup obj?scale 1.<_>
          rootStyles = backup obj?rootStyles {||}
          objects = HashSet(backup obj?objects [||])
          renderOffset = backup obj?renderOffset vecOrigin
          canvasSize = backup obj?canvasSize vecOrigin
          postTickHooks = backup obj?postTickHooks [||]}
-
-    // theres a more efficient way to do this but im tired
-    this?__proto__?getObjects <- captureThis (fun this () -> Seq.toArray this.objects)
-    this?__proto__?addObject <- captureThis (fun this o -> this.objects.Add o)
-    this?__proto__?removeObject <- captureThis (fun this o -> this.objects.Remove o)
 
     // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES
     //this <- Visualiser.initVis this
