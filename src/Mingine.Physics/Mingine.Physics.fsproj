@@ -8,13 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Include="Units.fs" />
+      <Compile Include="Types.fs" />
       <Compile Include="Simulator.fs" />
       <Compile Include="Collision.fs" />
       <Compile Include="ForceModels.fs" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Mingine.Core\Mingine.Core.fsproj" />
     </ItemGroup>
 
     <!-- Add source files to "fable" folder in Nuget package -->

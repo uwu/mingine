@@ -6,6 +6,7 @@ open Browser.Types
 open Fable.Core.JS
 open Fable.Core.JsInterop
 open Mingine.Types
+open Mingine.Engine.Types
 open Mingine.Physics
 open FSharp.Collections
 

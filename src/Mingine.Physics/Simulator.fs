@@ -6,9 +6,6 @@ open Mingine.Units
 open FSharp.Data.UnitSystems.SI.UnitSymbols
 open FSharp.Collections
 
-// workaround for F# compiler internal error kekw
-let private vecOrigin = { x = 0.<_>; y = 0.<_> } // Vec2.origin
-
 let private guardFloatInstability<[<Measure>] 'u> =
     mapFloatTyped<'u> (fun value ->
         if Double.IsNaN value || Math.Abs value = infinity then
@@ -25,7 +22,7 @@ let calcForcesAndTorques (gObj: PhysicsObj) (timeStep: float<s>) =
         |> Array.map (fun f -> f (gObj, timeStep))
     
     if forcesAndTorques.Length = 0 then
-        vecOrigin, 0.<_>
+        Vec2.origin, 0.<_>
     else
         forcesAndTorques
         // remove NaN and +-Infinity forces and torques

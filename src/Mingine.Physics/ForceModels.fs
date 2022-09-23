@@ -4,9 +4,6 @@ open FSharp.Data.UnitSystems.SI.UnitSymbols
 open Mingine.Types
 open Mingine
 
-// workaround for F# compiler internal error kekw
-let private vecOrigin = { x = 0.<_>; y = 0.<_> } // Vec2.origin
-
 // yeah so you can make gravity go sideways if you want just set the x component lmao
 /// Models the weight force (gravity!)
 let weight (gravity: Vec2<m / s^2>) (gObj, _ : float<s>) : ForceAndTorque =
@@ -22,7 +19,7 @@ let spring (springConstant: float<N / m>) restPos (connectionOset: Vec2<_>) (gOb
 
     let e =
         distToCentre
-        + (connectionOset.rotate gObj.angle vecOrigin)
+        + (connectionOset.rotate gObj.angle Vec2.origin)
     // Fs=-ke
     let Fs = -e * springConstant
     let torque = distToCentre +* Fs // cross product brr
@@ -54,7 +51,7 @@ let airDrag
     relativeFv.norm * magnitude, 0.<_>
 
 /// Models air resistance in still air - see `airDrag`
-let stillAirDrag = airDrag vecOrigin
+let stillAirDrag = airDrag Vec2.origin
 
 /// The air density on earth at 20c and at 101.325kPa
 let earthAirDensity = 1.204<kg/m^3>

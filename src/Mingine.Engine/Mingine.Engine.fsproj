@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Include="Types.fs" />
       <Compile Include="Engine.fs" />
       <Compile Include="JavaScript.fs" />
     </ItemGroup>

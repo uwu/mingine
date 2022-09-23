@@ -1,6 +1,4 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Mingine.Core", "src\Mingine.Core\Mingine.Core.fsproj", "{299679F1-8B73-4FCA-9278-ED8286A36AB0}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Mingine.Engine", "src\Mingine.Engine\Mingine.Engine.fsproj", "{57310E5D-6D5E-4C19-A4DB-D42F1C685F34}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Mingine.Physics", "src\Mingine.Physics\Mingine.Physics.fsproj", "{86781B38-ABA5-47A0-ABEE-8EB0CE41D046}"
@@ -11,10 +9,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{299679F1-8B73-4FCA-9278-ED8286A36AB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{299679F1-8B73-4FCA-9278-ED8286A36AB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{299679F1-8B73-4FCA-9278-ED8286A36AB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{299679F1-8B73-4FCA-9278-ED8286A36AB0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57310E5D-6D5E-4C19-A4DB-D42F1C685F34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{57310E5D-6D5E-4C19-A4DB-D42F1C685F34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57310E5D-6D5E-4C19-A4DB-D42F1C685F34}.Release|Any CPU.ActiveCfg = Release|Any CPU

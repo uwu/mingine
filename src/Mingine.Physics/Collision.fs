@@ -3,15 +3,12 @@ module Mingine.Physics.Collision
 open Mingine.Types
 open Mingine
 
-// workaround for F# compiler internal error kekw
-let private vecOrigin = { x = 0.<_>; y = 0.<_> } // Vec2.origin
-
 let private getOsetRectPoints (bl, tr) pos angle =
     [bl
      tr
      {x = bl.x; y = tr.y}
      {x = tr.x; y = bl.y}]
-    |> List.map (fun p -> pos + (p.rotate angle vecOrigin))
+    |> List.map (fun p -> pos + (p.rotate angle Vec2.origin))
 
 let private getRectNormals (bl, tr) angle =
     //let tl = {x = bl.x; y = tr.y}
@@ -22,16 +19,16 @@ let private getRectNormals (bl, tr) angle =
     //let planeL = tl - bl
 
     (*let normT =
-        -(planeT.rotate angle vecOrigin).perp.norm*)
+        -(planeT.rotate angle Vec2.origin).perp.norm*)
 
     let normR =
-        (planeR.rotate angle vecOrigin).perp.norm
+        (planeR.rotate angle Vec2.origin).perp.norm
 
     let normB =
-        (planeB.rotate angle vecOrigin).perp.norm
+        (planeB.rotate angle Vec2.origin).perp.norm
 
     (*let normL =
-        -(planeL.rotate angle vecOrigin).perp.norm*)
+        -(planeL.rotate angle Vec2.origin).perp.norm*)
 
     [|(*normT;*) normR; normB(*; normL*)|]
 
@@ -162,7 +159,7 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
                         | None -> None
                         | Some rp -> Some(absMin2 (rp, -axis) c)
                     )
-                (Some(infinity, vecOrigin))
+                (Some(infinity, Vec2.origin))
 
         minOptionsAnd
             circleSpecificCheck
@@ -202,7 +199,7 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
                         | None -> None
                         | Some rp -> Some(absMin2 (rp, axis) c)
                     )
-                (Some(infinity, vecOrigin))
+                (Some(infinity, Vec2.origin))
 
 /// resolves an MTV into one vector
 let resolveMTV (mag: float<_>, vec: Vec2<_>) = vec.norm * mag
