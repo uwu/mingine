@@ -43,3 +43,8 @@ Increment npm pkg manually, do not increment nuget pkg manualy.
  - Update TS defs
  - Object grouping system like Unity for collisions
  - n-th dimensional simulation support
+
+## Kudos
+http://buildnewgames.com/gamephysics
+
+https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331

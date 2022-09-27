@@ -40,7 +40,12 @@ let private absMin2 v1 v2 =
         v1
     else v2
 
-let minOptionsAnd o1 o2 =
+let private absMax2 v1 v2 =
+    if (abs (fst v1)) > (abs (fst v2)) then
+        v1
+    else v2
+
+let private minOptionsAnd o1 o2 =
     match o1 with
     | None -> None
     | Some v1 ->
@@ -48,7 +53,7 @@ let minOptionsAnd o1 o2 =
         | None -> None
         | Some v2 -> Some(absMin2 v1 v2)
         
-let minOptionsOr o1 o2 =
+let private minOptionsOr o1 o2 =
     match o1 with
     | None ->
         match o2 with
@@ -58,6 +63,17 @@ let minOptionsOr o1 o2 =
         match o2 with
         | None -> Some v1
         | Some v2 -> Some(absMin2 v1 v2)
+
+let private maxOptionsOr o1 o2 =
+    match o1 with
+    | None ->
+        match o2 with
+        | None -> None
+        | Some r2 -> Some r2
+    | Some v1 ->
+        match o2 with
+        | None -> Some v1
+        | Some v2 -> Some(absMax2 v1 v2)
 
 /// takes an axis and a list of points, returns the min and max point of the projection
 let projectPolygonToAxis (axis: Vec2<_>) (points: list<_>) =
@@ -211,7 +227,7 @@ let rec collideColliders c1 c2 pos1 angle1 pos2 angle2 =
     | CircularCollider (r, c) -> collideWithCircle (r, c) pos1 c2 pos2 angle2
     | RectCollider (bl, tr) -> collideWithRect (bl, tr) pos1 angle1 c2 pos2 angle2
     | CompositeCollider (a, b) ->
-        minOptionsOr
+        maxOptionsOr
             (collideColliders a c2 pos1 angle1 pos2 angle2)
             (collideColliders b c2 pos1 angle1 pos2 angle2)
 
