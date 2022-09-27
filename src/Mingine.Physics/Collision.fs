@@ -120,7 +120,7 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
     match collider with
     | NullCollider -> None
     | CompositeCollider (a, b) ->
-        minOptionsOr
+        maxOptionsOr
             (collideWithCircle (rad, center) pos a otherPos otherAngle)
             (collideWithCircle (rad, center) pos b otherPos otherAngle)
 
@@ -186,7 +186,7 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
     match collider with
     | NullCollider -> None
     | CompositeCollider (a, b) ->
-        minOptionsAnd
+        maxOptionsOr
             (collideWithRect (bl, tr) pos angle a otherPos otherAngle)
             (collideWithRect (bl, tr) pos angle b otherPos otherAngle)
 

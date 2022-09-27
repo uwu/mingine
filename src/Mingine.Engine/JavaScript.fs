@@ -111,6 +111,7 @@ let createScene obj =
          renderOffset = backup obj?renderOffset vecOrigin
          canvasSize = backup obj?canvasSize vecOrigin
          postTickHooks = backup obj?postTickHooks [||]
+         postFrameHooks = backup obj?postFrameHooks [||]
          eventHandlers = [||]} //TODO
 
     // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES

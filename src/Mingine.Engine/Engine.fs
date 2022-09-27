@@ -230,6 +230,8 @@ let createEngine scene =
                         renderRoot this
                         renderGameObjects this
 
+                        for h in this.scene.postFrameHooks do h this.scene
+
                         if not cancel then
                             window.requestAnimationFrame renderLoop |> ignore)
 

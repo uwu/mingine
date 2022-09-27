@@ -24,6 +24,8 @@
 
 	const renderScale = 100;
 
+	let collidedThisFrame = false;
+	
 	const engine = mg.createEngine(mg.createScene({
 		scale: renderScale,
 		rootStyles: {border: "1px solid gray"},
@@ -47,11 +49,19 @@
 				const bouncingBall = objects.find(o => o.id === "BOUNCING_BALL");
 				const rotatingRect = objects.find(o => o.id === "ROTATING_RECT");
 
-				rotatingRect.styles.borderColor =
-					engine.queryCollision(bouncingBall, rotatingRect)
-						? "red" : "";
+				collidedThisFrame ||= engine.queryCollision(bouncingBall, rotatingRect);
 			}
 		],
+        
+        postFrameHooks: [
+	        (s) => {
+		        const objects = s.getObjects();
+		        const rotatingRect = objects.find(o => o.id === "ROTATING_RECT");
+
+		        rotatingRect.styles.borderColor = collidedThisFrame ? "red" : "";
+		        collidedThisFrame = false;
+            }
+        ],
 
 		objects: [
 			mg.createRect({
@@ -65,7 +75,7 @@
 					border: "1px solid black"
 				},
 				collide: true,
-				mass: Infinity,
+				mass: 1,
 				// 1/12 m (h^2+w^2)
 				momentOfInertia: Infinity, // cba to type out full calc
 				angVelocity: 0.75,

@@ -46,4 +46,5 @@ type Scene =
      renderOffset: Vec2<m>
      canvasSize: Vec2<m>
      postTickHooks: (Scene * float<s> -> unit)[]
+     postFrameHooks: (Scene -> unit)[]
      eventHandlers: (string * GameObj -> Event -> unit)[]}

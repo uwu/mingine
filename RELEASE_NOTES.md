@@ -4,6 +4,8 @@
 - Add `Simulator.impulse` / `physicsObj.prototype.impulse()`
 - Un-expose some internal `Simulator` funcs
 - More toString tags on object prototypes, which should improve debugging experience in some browsers
+- Fix collision response clipping issue
+- Add post-frame hooks
 
 ### 1.0.1
 - Fix some wrong typedefs
