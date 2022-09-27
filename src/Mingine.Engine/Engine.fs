@@ -113,7 +113,7 @@ let collideAllObjects engine _ =
                 engine.scene.objects
                 |> Seq.except [|o|]
                 |> Seq.map (fun o2 ->
-                            match Collision.collideGObjs o.o o2.o with
+                            match Collision.collideGObjs o.o.collider o.o.physicsObj o2.o.collider o2.o.physicsObj with
                             | None -> None
                             | Some rawMtv ->
                                 match engine.collisionCache.TryGetValue o with

@@ -216,12 +216,12 @@ let rec collideColliders c1 c2 pos1 angle1 pos2 angle2 =
             (collideColliders b c2 pos1 angle1 pos2 angle2)
 
 /// gets resolved vector if two objects collide
-let collideGObjs gO1 gO2 =
+let collideGObjs c1 p1 c2 p2 =
     collideColliders
-        gO1.collider
-        gO2.collider
-        gO1.physicsObj.pos
-        gO1.physicsObj.angle
-        gO2.physicsObj.pos
-        gO2.physicsObj.angle
+        c1
+        c2
+        p1.pos
+        p1.angle
+        p2.pos
+        p2.angle
     |> Option.map resolveMTV

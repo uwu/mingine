@@ -110,7 +110,8 @@ let createScene obj =
          objects = HashSet(backup obj?objects [||])
          renderOffset = backup obj?renderOffset vecOrigin
          canvasSize = backup obj?canvasSize vecOrigin
-         postTickHooks = backup obj?postTickHooks [||]}
+         postTickHooks = backup obj?postTickHooks [||]
+         eventHandlers = [||]} //TODO
 
     // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES
     //this <- Visualiser.initVis this
@@ -147,7 +148,8 @@ let createObject obj =
              angle = backup obj?angle 0.<_>
              angVelocity = backup obj?angVelocity 0.<_>
              angAccel = backup obj?angAccel 0.<_>
-             restitutionCoeff = backup obj?restitutionCoeff 1.}}
+             restitutionCoeff = backup obj?restitutionCoeff 1.}
+         eventHandlers = [||]} //TODO
     |> unwrapWrapped
 
 let createCircle obj =
