@@ -10,6 +10,10 @@ open Mingine.Engine.Types
 open Mingine.Physics
 open FSharp.Collections
 
+let private eventNames =
+    (Constructors.Object.keys window :> obj :?> string[])
+    |> Collections.Array.choose (fun s -> if s.StartsWith "on" then Some(s.Substring 2) else None)
+
 let requiredRootStyles =
     {|position = "relative"|}
 
@@ -185,10 +189,16 @@ let createEngine scene =
         let maybeGObj = this.gObjMountedCache.TryGet2 (e.target :?> HTMLElement)
         match maybeGObj with
         | None -> ()
-        | Some(go) -> ()
-            //go.o.eventHandlers
-        ()
-    // TODO
+        | Some(go) ->
+            for h in go.o.eventHandlers do
+                h (e.``type``, e, Some go)
+
+        let resolvedEvent = e.``type``, e, maybeGObj
+        
+        this.tickEventCache <- resolvedEvent::this.tickEventCache
+        this.frameEventCache <- resolvedEvent::this.frameEventCache
+        
+        for h in this.scene.eventHandlers do h resolvedEvent
     
     this <-
         {scene = scene
@@ -206,7 +216,12 @@ let createEngine scene =
              (this.collisionCache.ContainsKey o1 && (this.collisionCache[o1] |> List.contains o2))
              || (this.collisionCache.ContainsKey o2 && (this.collisionCache[o2] |> List.contains o1)))
 
-         mount = (fun elem -> this.mounted <- Some elem)
+         mount = (fun elem ->
+             for eventName in eventNames do
+                 elem.addEventListener(eventName, eventHandler)
+                 
+             this.mounted <- Some elem
+             )
 
          unmount =
              (fun () ->

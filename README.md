@@ -35,15 +35,6 @@ Publish to NPM using `(p)npm publish` lol.
 
 Increment npm pkg manually, do not increment nuget pkg manualy.
 
-## //TODO
-
- - Add renderers
- - Finish events system
- - Add global timing tools
- - Update TS defs
- - Object grouping system like Unity for collisions
- - n-th dimensional simulation support
-
 ## Kudos
 http://buildnewgames.com/gamephysics
 

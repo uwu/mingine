@@ -15,10 +15,10 @@ type GameObj =
      blOffset: Vec2<m>
      styles: obj
      collider: Collider
-     eventHandlers: (string * GameObj -> Event -> unit)[]}
+     eventHandlers: (ResolvedEvent -> unit)[]}
 
 // pure pain
-type WrappedGObj(o: GameObj) =
+and WrappedGObj(o: GameObj) =
     // despite what the msdocs say, mutating o leaves the equality intact but hashcodes different
     // so heres a custom hashcode impl
     /// global hashcode for all instances of this class. increments on construct.
@@ -37,7 +37,7 @@ type WrappedGObj(o: GameObj) =
     member val o = o with get, set
 
 /// A DOM event that has been resolved to a game object
-type ResolvedEvent = string * Event * WrappedGObj option
+and ResolvedEvent = string * Event * WrappedGObj option
 
 /// Holds all the game objects in the game and controls the root render div
 type Scene =

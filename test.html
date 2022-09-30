@@ -54,7 +54,7 @@
 		],
         
         postFrameHooks: [
-	        (s) => {
+	        ([s]) => {
 		        const objects = s.getObjects();
 		        const rotatingRect = objects.find(o => o.id === "ROTATING_RECT");
 
@@ -80,7 +80,17 @@
 				momentOfInertia: Infinity, // cba to type out full calc
 				angVelocity: 0.75,
 				angle: 0.85,
-				pos: mg.v(1, 0.75)
+				pos: mg.v(1, 0.75),
+                
+                eventHandlers: [
+	                ([type, event, gObj]) => {
+		                if (type !== "click") return;
+						gObj.styles.background = "rgba(255, 255, 0, 128)";
+						setTimeout(() => {
+							gObj.styles.background = "";
+                        }, 500);
+	                }
+                ]
 			}),
 
 			createTearDrop({

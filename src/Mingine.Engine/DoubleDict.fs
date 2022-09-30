@@ -4,8 +4,8 @@ open System.Collections.Generic
 
 /// A two-way hash map
 type DoubleDict<'a, 'b> when 'a : equality and 'b : equality () =
-    member private _.forward = Dictionary<'a, 'b>()
-    member private _.backward = Dictionary<'b, 'a>()
+    member val forward = Dictionary<'a, 'b>()
+    member val backward = Dictionary<'b, 'a>()
     
     member this.Add v1 v2 =
         this.forward.Add(v1, v2)

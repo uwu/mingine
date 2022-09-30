@@ -112,7 +112,7 @@ let createScene obj =
          canvasSize = backup obj?canvasSize vecOrigin
          postTickHooks = backup obj?postTickHooks [||]
          postFrameHooks = backup obj?postFrameHooks [||]
-         eventHandlers = [||]} //TODO
+         eventHandlers = backup obj?eventHandlers [||]}
 
     // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES
     //this <- Visualiser.initVis this
@@ -150,7 +150,7 @@ let createObject obj =
              angVelocity = backup obj?angVelocity 0.<_>
              angAccel = backup obj?angAccel 0.<_>
              restitutionCoeff = backup obj?restitutionCoeff 1.}
-         eventHandlers = [||]} //TODO
+         eventHandlers = backup obj?eventHandlers [||]}
     |> unwrapWrapped
 
 let createCircle obj =
