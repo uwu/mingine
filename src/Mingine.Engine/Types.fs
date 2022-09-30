@@ -36,6 +36,9 @@ type WrappedGObj(o: GameObj) =
 
     member val o = o with get, set
 
+/// A DOM event that has been resolved to a game object
+type ResolvedEvent = string * Event * WrappedGObj option
+
 /// Holds all the game objects in the game and controls the root render div
 type Scene =
     {scale: float<px / m> // scale of 1 means 1px=1m, scale of 10 means 10px=1m, etc
@@ -45,6 +48,6 @@ type Scene =
      /// - for example: when set to (1, 2) then an object at (1, 2) would be rendered as if at (0, 0)
      renderOffset: Vec2<m>
      canvasSize: Vec2<m>
-     postTickHooks: (Scene * float<s> -> unit)[]
-     postFrameHooks: (Scene -> unit)[]
-     eventHandlers: (string * GameObj -> Event -> unit)[]}
+     postTickHooks: (Scene * float<s> * ResolvedEvent list -> unit)[]
+     postFrameHooks: (Scene * ResolvedEvent list -> unit)[]
+     eventHandlers: (ResolvedEvent -> unit)[]}

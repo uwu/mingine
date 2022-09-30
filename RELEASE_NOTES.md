@@ -6,6 +6,12 @@
 - More toString tags on object prototypes, which should improve debugging experience in some browsers
 - Fix collision response clipping issue
 - Add post-frame hooks
+- Add event handling for DOM events
+  * Imperatively when they occur on the relevant game object
+  * Imperatively when they occur globally
+  * All since last tick on the relevant game object
+  * All since last tick globally
+  * All since last frame globally
 
 ### 1.0.1
 - Fix some wrong typedefs

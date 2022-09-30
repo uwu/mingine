@@ -35,14 +35,19 @@ type EngineWrap =
      mutable running: bool
      mutable mounted: HTMLElement option
      mutable lastTick: float
-     // F# map does not compile to ES map, but Dictionary does.
-     mutable gObjMountedCache: Dictionary<WrappedGObj, HTMLElement>
+     
+     // keeps track of mounted elements
+     mutable gObjMountedCache: DoubleDict<WrappedGObj, HTMLElement>
 
      // this cache is purely to provide less crappy collision queries to the API
      // if you do not query collisions the building and storage of this cache is
      // pure cpu and memory overhead. I don't care enough to provide a way to disable it.
      mutable collisionCache: Dictionary<WrappedGObj, WrappedGObj list>
      queryCollision: WrappedGObj -> WrappedGObj -> bool
+     
+     // these caches are internal only.
+     mutable tickEventCache: ResolvedEvent list
+     mutable frameEventCache: ResolvedEvent list
      
      mutable start: StartOpts option -> unit
      mutable stop: unit -> unit
@@ -85,7 +90,7 @@ let renderRoot engine =
 let renderGameObjects engine =
     for wrapped in engine.scene.objects do
         let exists =
-            engine.gObjMountedCache.ContainsKey wrapped
+            engine.gObjMountedCache.Contains1 wrapped
 
         if not exists then
             let elem =
@@ -94,14 +99,14 @@ let renderGameObjects engine =
             (Option.get engine.mounted).appendChild elem
             |> ignore
 
-            engine.gObjMountedCache[wrapped] <- elem
+            engine.gObjMountedCache.Set1 wrapped elem
 
-        updateGameObject engine.scene wrapped.o engine.gObjMountedCache[wrapped]
+        updateGameObject engine.scene wrapped.o (engine.gObjMountedCache.Get1 wrapped)
 
-    for kv in Seq.toArray engine.gObjMountedCache do
-        if not (engine.scene.objects.Contains kv.Key) then
-            kv.Value.remove ()
-            engine.gObjMountedCache.Remove kv.Key |> ignore
+    for k, v in Seq.toArray engine.gObjMountedCache do
+        if not (engine.scene.objects.Contains k) then
+            v.remove ()
+            engine.gObjMountedCache.Remove1 k |> ignore
 
 let collideAllObjects engine _ =
     engine.collisionCache.Clear()
@@ -165,7 +170,9 @@ let runPhysicsTick engine timeStep =
     let hooks = engine.scene.postTickHooks
 
     for h in hooks do
-        h (engine.scene, timeStep)
+        h (engine.scene, timeStep, engine.tickEventCache)
+    
+    engine.tickEventCache <- []
 
 let createEngine scene =
     // i love hacks
@@ -174,14 +181,26 @@ let createEngine scene =
 
     let mutable this = Unchecked.defaultof<_> // actually just `null`
 
+    let eventHandler (e: Event) =
+        let maybeGObj = this.gObjMountedCache.TryGet2 (e.target :?> HTMLElement)
+        match maybeGObj with
+        | None -> ()
+        | Some(go) -> ()
+            //go.o.eventHandlers
+        ()
+    // TODO
+    
     this <-
         {scene = scene
          running = false
          mounted = None
          lastTick = 0
 
-         gObjMountedCache = Dictionary()
+         gObjMountedCache = DoubleDict()
          collisionCache = Dictionary()
+         
+         tickEventCache = []
+         frameEventCache = []
          
          queryCollision = (fun o1 o2 ->
              (this.collisionCache.ContainsKey o1 && (this.collisionCache[o1] |> List.contains o2))
@@ -230,7 +249,9 @@ let createEngine scene =
                         renderRoot this
                         renderGameObjects this
 
-                        for h in this.scene.postFrameHooks do h this.scene
+                        for h in this.scene.postFrameHooks do h (this.scene, this.frameEventCache)
+                        
+                        this.frameEventCache <- []
 
                         if not cancel then
                             window.requestAnimationFrame renderLoop |> ignore)
