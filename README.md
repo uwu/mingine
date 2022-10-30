@@ -36,6 +36,10 @@ Publish to NPM using `(p)npm publish` lol.
 Increment npm pkg manually, do not increment nuget pkg manualy.
 
 ## Kudos
-http://buildnewgames.com/gamephysics
 
-https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
+http://buildnewgames.com/gamephysics - core structure of the engine
+
+https://dyn4j.org/2010/01/sat/ - the one article that made collision actually happen
+
+https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331 -
+didn't really use this but still some good notes about when to ignore collisions and about preventing sinking.
