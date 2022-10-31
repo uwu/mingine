@@ -124,6 +124,18 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
             (collideWithCircle (rad, center) pos a otherPos otherAngle)
             (collideWithCircle (rad, center) pos b otherPos otherAngle)
 
+    | PlaneCollider axis ->
+        // without * -1 the normal is clockwise of the line
+        // this is an entirely arbitrary decision however with it this way,
+        // an axis of (1, 0) makes a usable floor, which is intuitive.
+        let normal = axis.perp.norm * -1.
+        
+        let proj1, proj2 = projectCircleToAxis normal (rad, pos + center)
+        
+        if proj1 < 0 then Some(abs proj1, normal)
+        else if proj2 < 0 then Some(abs proj2, normal)
+        else None
+    
     | CircularCollider (otherRad, otherCenter) ->
         let vecToOther = (otherPos + otherCenter) - (pos + center)
         
@@ -190,6 +202,17 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
             (collideWithRect (bl, tr) pos angle a otherPos otherAngle)
             (collideWithRect (bl, tr) pos angle b otherPos otherAngle)
 
+    | PlaneCollider axis ->
+        let normal = axis.perp.norm * -1.
+        
+        let myPoints = getOsetRectPoints (bl, tr) pos angle
+        
+        let proj1, proj2 = projectPolygonToAxis normal myPoints
+        
+        if proj1 < 0 then Some(abs proj1, normal)
+        else if proj2 < 0 then Some(abs proj2, normal)
+        else None
+    
     | CircularCollider (r, c) -> collideWithCircle (r, c) otherPos (RectCollider(bl, tr)) pos angle
 
     | RectCollider (bl2, tr2) ->
@@ -217,6 +240,18 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
                     )
                 (Some(infinity, Vec2.origin))
 
+let rec collideWithPlane axis c2 pos2 angle2 =
+    match c2 with
+    | NullCollider -> None
+    | CompositeCollider(c2_1, c2_2) ->
+        maxOptionsOr
+            (collideWithPlane axis c2_1 pos2 angle2)
+            (collideWithPlane axis c2_2 pos2 angle2)
+        
+    | PlaneCollider _ -> None // if infinite planes can collide with each other this would cause havoc
+    | CircularCollider (r, c) -> collideWithCircle (r, c) pos2 (PlaneCollider axis) Vec2.origin 0.<_>
+    | RectCollider (bl, tr) -> collideWithRect (bl, tr) pos2 angle2 (PlaneCollider axis) Vec2.origin 0.<_>
+
 /// resolves an MTV into one vector
 let resolveMTV (mag: float<_>, vec: Vec2<_>) = vec.norm * mag
 
@@ -224,6 +259,7 @@ let resolveMTV (mag: float<_>, vec: Vec2<_>) = vec.norm * mag
 let rec collideColliders c1 c2 pos1 angle1 pos2 angle2 =
     match c1 with
     | NullCollider -> None
+    | PlaneCollider axis -> collideWithPlane axis c2 pos2 angle2
     | CircularCollider (r, c) -> collideWithCircle (r, c) pos1 c2 pos2 angle2
     | RectCollider (bl, tr) -> collideWithRect (bl, tr) pos1 angle1 c2 pos2 angle2
     | CompositeCollider (a, b) ->

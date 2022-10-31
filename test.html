@@ -14,7 +14,6 @@
 			? mg.createColliderNull()
 			: mg.createColliderComposite(
 				mg.createColliderCircle(o.radius, mg.vo()),
-				//mp.createColliderNull(),
 				mg.createColliderRect(mg.vo(), mg.v(o.radius, o.radius)),
 			);
 
@@ -31,18 +30,6 @@
 		rootStyles: {border: "1px solid gray"},
 		canvasSize: mg.v(2, 2),
 		postTickHooks: [
-			// basic floor collision
-			([s, t]) => {
-				for (const o of s.objects) {
-					const p = o["o@"].physicsObj;
-
-					const newPos = p.pos.add(p.velocity.scale(t));
-
-					if (newPos.y < 0.1 && p.velocity.y < 0)
-						p.velocity = mg.v(p.velocity.x, p.velocity.y * -0.8);
-				}
-			},
-
 			// box collision test
 			([s, _t]) => {
 				const objects = s.getObjects();
@@ -64,6 +51,13 @@
         ],
 
 		objects: [
+			mg.createObject({
+                id: "FLOOR",
+                blOffset: mg.vo(),
+                collider: mg.createColliderPlane(mg.v(1, 0)),
+                mass: Infinity,
+                momentOfInertia: Infinity,
+            }),
 			mg.createRect({
 				id: "ROTATING_RECT",
 				width: 0.4,
