@@ -2,6 +2,7 @@ module Mingine.Physics.Collision
 
 open Mingine.Types
 open Mingine
+open FSharp.Data.UnitSystems.SI.UnitSymbols
 
 let private getOsetRectPoints (bl, tr) pos angle =
     [bl
@@ -22,15 +23,17 @@ let private getRectNormals (bl, tr) angle =
     [|normR; normB|]
 
 
+let private fst3 (v, _, _) = v
+
 let private absMin v1 v2 = if (abs v1) < (abs v2) then v1 else v2
 
 let private absMin2 v1 v2 =
-    if (abs (fst v1)) < (abs (fst v2)) then
+    if (abs (fst3 v1)) < (abs (fst3 v2)) then
         v1
     else v2
 
 let private absMax2 v1 v2 =
-    if (abs (fst v1)) > (abs (fst v2)) then
+    if (abs (fst3 v1)) > (abs (fst3 v2)) then
         v1
     else v2
 
@@ -112,9 +115,9 @@ let rec collideWithPlane (axis: Vec2<_>, oset) pos1 angle1 c2 pos2 angle2 =
     // an axis of (1, 0) makes a usable floor, which is intuitive.
     let normal = axis.perp.norm * -1.
     
-    let checkOlap (proj1 : float, proj2 : float) =
-        if proj1 < 0 then Some(abs proj1, normal)
-        else if proj2 < 0 then Some(abs proj2, normal)
+    let checkOlap (closestPoint: Vec2<m>) (proj1 : float, proj2 : float) =
+        if proj1 < 0 then Some(abs proj1, normal, closestPoint)
+        else if proj2 < 0 then Some(abs proj2, normal, closestPoint)
         else None
     
     match c2 with
@@ -127,13 +130,14 @@ let rec collideWithPlane (axis: Vec2<_>, oset) pos1 angle1 c2 pos2 angle2 =
     | PlaneCollider _ -> None // if infinite planes can collide with each other this would cause havoc
     | CircularCollider(rad, center) ->
         projectCircleToAxis normal (rad, pos2 + center - pos1 - oset)
-        |> checkOlap
+        |> checkOlap Vec2.origin
     
     | RectCollider(bl, tr) ->
         let points = getOsetRectPoints (bl, tr) (pos2 - pos1 - oset) angle2
+        let closestPoint = points |> List.minBy ((*) normal)
         
         projectPolygonToAxis normal points
-        |> checkOlap
+        |> checkOlap closestPoint
 
 /// gets MTV if a circle collider is colliding with another given collider
 let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
@@ -154,7 +158,10 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
             (rad + otherRad) - (abs vecToOther.len)
 
         if overlapAmount > 0.<_> then
-            Some(Units.typedToFloat -overlapAmount, vecToOther * 1.<_>)
+            Some(
+                Units.typedToFloat -overlapAmount,
+                vecToOther * 1.<_>,
+                (pos + center) + (vecToOther / 2.))
         else
             None
 
@@ -179,7 +186,7 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
         let circleSpecificCheck =
             match getProjectionOverlap circProj recProj with
             | None -> None
-            | Some olap -> Some(olap, axis)
+            | Some olap -> Some(olap, axis, closestPoint)
 
         let rectCheck =
             getRectNormals (bl, tr) otherAngle
@@ -196,9 +203,9 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
 
                         match p with
                         | None -> None
-                        | Some rp -> Some(absMin2 (rp, -axis) c)
+                        | Some rp -> Some(absMin2 (rp, -axis, closestPoint) c)
                     )
-                (Some(infinity, Vec2.origin))
+                (Some(infinity, Vec2.origin, closestPoint))
 
         minOptionsAnd
             circleSpecificCheck
@@ -224,6 +231,13 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
         let theirPoints =
             getOsetRectPoints (bl2, tr2) otherPos otherAngle
 
+        let closestPoint =
+            myPoints
+            |> List.minBy (fun p1 ->
+                theirPoints
+                |> List.minBy (fun p2 -> (p2 - p1).len)
+                )
+        
         Array.append (getRectNormals (bl, tr) angle) (getRectNormals (bl2, tr2) otherAngle)
         |> Array.distinct
         |> Array.fold
@@ -238,12 +252,12 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
                         
                         match p with
                         | None -> None
-                        | Some rp -> Some(absMin2 (rp, axis) c)
+                        | Some rp -> Some(absMin2 (rp, axis, closestPoint) c)
                     )
-                (Some(infinity, Vec2.origin))
+                (Some(infinity, Vec2.origin, closestPoint))
 
 /// resolves an MTV into one vector
-let resolveMTV (mag: float<_>, vec: Vec2<_>) = vec.norm * mag
+let resolveMTV (mag: float<_>, vec: Vec2<_>, point: Vec2<_>) = vec.norm * mag, point
 
 /// gets MTV if two colliders collide
 let rec collideColliders c1 c2 pos1 angle1 pos2 angle2 =
@@ -267,3 +281,40 @@ let collideGObjs c1 p1 c2 p2 =
         p2.pos
         p2.angle
     |> Option.map resolveMTV
+
+// TODO: make the returned magnitudes in metres or something
+
+let private signf x = if x > 0.<_> then 1. else -1.
+
+let respondToCollision p1 (mtv: Vec2<_>) m2 point tStep =
+    // reflect velocity along our axis
+    // https://math.stackexchange.com/a/13263
+    let d = p1.velocity * 1.<_>
+    let n = mtv.norm
+    let reflectedVel =
+        d - ((d * n) * 2.) * n
+        |> Vec2.map Units.floatToTyped
+    
+    let massProportion =
+        if p1.mass = (infinity * 1.<_>) then
+            0.
+        else
+            if m2 = (infinity * 1.<_>) then
+                1.
+            else m2 / (p1.mass + m2)
+
+    // generate torque - first we need a force!
+    let velocityDiff = reflectedVel - p1.velocity
+    // generate an acceleration that will apply this velocity diff next frame
+    let neededAccel = velocityDiff / tStep
+    let force = neededAccel * p1.mass
+    let torque = (force +* (point - p1.pos)) * 0.1<_> // TODO work out more properly
+    let neededAngAccel = torque / p1.momentOfInertia * 1.<Units.rad>
+    let angVelChange = neededAngAccel * tStep
+    
+    {p1 with
+        pos = p1.pos + mtv
+        velocity = reflectedVel * p1.restitutionCoeff * massProportion
+        angVelocity = p1.angVelocity + angVelChange}
+
+// TODO: ensure all "closest points" are definitely right 

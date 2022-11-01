@@ -119,12 +119,14 @@ let collideAllObjects engine _ =
 
     let objects =
         engine.scene.objects
+        |> Seq.filter (fun o -> o.o.physicsObj.mass <> (infinity * 1.<_>))
         |> Seq.choose (fun o ->
             let worldCollisions =
                 engine.scene.worldColliders
                 |> Seq.choose (fun c2 ->
                     Collision.collideColliders o.o.collider c2 o.o.physicsObj.pos o.o.physicsObj.angle vecOrigin 0.<_>
                     |> Option.map Collision.resolveMTV
+                    |> Option.map (fun (v, p) -> v, p, infinity * 1.<_>)
                     )
             
             let collisions =
@@ -133,14 +135,12 @@ let collideAllObjects engine _ =
                 |> Seq.choose (fun o2 ->
                             match Collision.collideGObjs o.o.collider o.o.physicsObj o2.o.collider o2.o.physicsObj with
                             | None -> None
-                            | Some rawMtv ->
+                            | Some (mtv, point) ->
                                 match engine.collisionCache.TryGetValue o with
                                 | true, list -> engine.collisionCache[o] <- o2::list
                                 | _ -> engine.collisionCache[o] <- [o2]
                                 
-                                if (abs o2.o.physicsObj.mass) = (infinity * 1.<_>)
-                                then Some rawMtv // prevent (NaN, NaN)
-                                else Some (rawMtv * (o2.o.physicsObj.mass / (o2.o.physicsObj.mass + o.o.physicsObj.mass)))
+                                Some (mtv, point, o2.o.physicsObj.mass)
                             )
                 |> Seq.append worldCollisions
                 |> Seq.toArray
@@ -151,26 +151,21 @@ let collideAllObjects engine _ =
                 Some (
                     o,
                     collisions
-                    |> Collections.Array.reduce Vec2<_>.lenMin
+                    |> Collections.Array.reduce (fun (v1, p1, m1) (v2, p2, m2) ->
+                        if v1.len < v2.len then (v1, p1, m1) else (v2, p2, m2))
                 )
             )
 
     // mutability bad but also itd be more comfy :skull:
-    for obj, v in objects do
-        // reflect velocity along our axis
-        // https://math.stackexchange.com/a/13263
-        let d = obj.o.physicsObj.velocity * 1.<_>
-        let n = v.norm
-        let r = d - ((d * n) * 2.) * n
-        
+    for obj, (mtv, point, m2) in objects do
         obj.o <-
             {obj.o with
-                physicsObj =
-                    {obj.o.physicsObj with
-                        velocity = r * 1.<_> * obj.o.physicsObj.restitutionCoeff
-                        pos =
-                            obj.o.physicsObj.pos
-                            + (Vec2.map Units.floatToTyped v)}}
+                physicsObj = Collision.respondToCollision
+                    obj.o.physicsObj
+                    (mtv * 1.<_>) // TODO remove this unit fix
+                    m2
+                    point
+                    (1. / 200.) (*0.<_>*) }
 
 let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY
