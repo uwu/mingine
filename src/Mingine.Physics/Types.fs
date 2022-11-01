@@ -100,7 +100,7 @@ type Collider =
     | RectCollider of Vec2<m> * Vec2<m> // bottom left, top right
     | CompositeCollider of Collider * Collider
     // note that the normal is to the anticlockwise side of this vec, so that (1, 0) makes a floor
-    | PlaneCollider of Vec2<m>
+    | PlaneCollider of Vec2<m> * Vec2<m>
     | NullCollider
 
 type ForceAndTorque = Vec2<N> * float<N m>

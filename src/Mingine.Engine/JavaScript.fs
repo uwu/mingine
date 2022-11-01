@@ -185,7 +185,7 @@ let createRect obj =
     createObject obj
 
 let createColliderNull () = NullCollider
-let createColliderPlane vec = PlaneCollider vec
+let createColliderPlane axis oset = PlaneCollider(axis, oset |> Option.defaultValue vecOrigin)
 let createColliderComposite a b = CompositeCollider(a, b)
 let createColliderCircle rad center = CircularCollider(rad, center)
 let createColliderRect botLeft topRight = RectCollider(botLeft, topRight)
