@@ -10,6 +10,8 @@ open Mingine.Engine.Types
 open Mingine.Physics
 open FSharp.Collections
 
+let vecOrigin = { x = 0.<_>; y = 0.<_> }
+
 let private eventNames =
     (Constructors.Object.keys window :> obj :?> string[])
     |> Collections.Array.choose (fun s -> if s.StartsWith "on" then Some(s.Substring 2) else None)
@@ -118,10 +120,17 @@ let collideAllObjects engine _ =
     let objects =
         engine.scene.objects
         |> Seq.choose (fun o ->
-            let objs =
+            let worldCollisions =
+                engine.scene.worldColliders
+                |> Seq.choose (fun c2 ->
+                    Collision.collideColliders o.o.collider c2 o.o.physicsObj.pos o.o.physicsObj.angle vecOrigin 0.<_>
+                    |> Option.map Collision.resolveMTV
+                    )
+            
+            let collisions =
                 engine.scene.objects
                 |> Seq.except [|o|]
-                |> Seq.map (fun o2 ->
+                |> Seq.choose (fun o2 ->
                             match Collision.collideGObjs o.o.collider o.o.physicsObj o2.o.collider o2.o.physicsObj with
                             | None -> None
                             | Some rawMtv ->
@@ -133,16 +142,16 @@ let collideAllObjects engine _ =
                                 then Some rawMtv // prevent (NaN, NaN)
                                 else Some (rawMtv * (o2.o.physicsObj.mass / (o2.o.physicsObj.mass + o.o.physicsObj.mass)))
                             )
-                |> Seq.choose id
+                |> Seq.append worldCollisions
                 |> Seq.toArray
 
-            if objs.Length = 0 then
+            if collisions.Length = 0 then
                 None
             else
                 Some (
                     o,
-                    objs
-                    |> Collections.Array.reduce (Vec2<_>.map2 min)
+                    collisions
+                    |> Collections.Array.reduce Vec2<_>.lenMin
                 )
             )
 

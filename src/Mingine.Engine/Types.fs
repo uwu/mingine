@@ -44,8 +44,8 @@ type Scene =
     {scale: float<px / m> // scale of 1 means 1px=1m, scale of 10 means 10px=1m, etc
      rootStyles: obj
      objects: WrappedGObj HashSet // hashset = es set, unlike F# map
-     /// where in the scene should be rendered as the origin
-     /// - for example: when set to (1, 2) then an object at (1, 2) would be rendered as if at (0, 0)
+     worldColliders: Collider[]
+     /// think of this as the position of the camera
      renderOffset: Vec2<m>
      canvasSize: Vec2<m>
      postTickHooks: (Scene * float<s> * ResolvedEvent list -> unit)[]

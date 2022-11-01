@@ -91,6 +91,9 @@ type Vec2<[<Measure>] 'u> =
     
     member v.perp = { x = v.y; y = -v.x }
     
+    /// picks the vector with lower magnitude from the two given
+    static member lenMin (v1: Vec2<_>) (v2: Vec2<_>) = if v1.len > v2.len then v1 else v2
+    
     // debugging purposes
     override v.ToString() = $"(%f{v.x}, %f{v.y})"
 

@@ -49,15 +49,11 @@
 		        collidedThisFrame = false;
             }
         ],
+        
+        // floor
+        worldColliders: [ mg.createColliderPlane(mg.v(1, 0)) ],
 
 		objects: [
-			mg.createObject({
-                id: "FLOOR",
-                blOffset: mg.vo(),
-                collider: mg.createColliderPlane(mg.v(1, 0)),
-                mass: Infinity,
-                momentOfInertia: Infinity,
-            }),
 			mg.createRect({
 				id: "ROTATING_RECT",
 				width: 0.4,

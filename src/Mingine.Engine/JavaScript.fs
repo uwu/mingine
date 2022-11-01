@@ -108,6 +108,7 @@ let createScene obj =
         {scale = backup obj?scale 1.<_>
          rootStyles = backup obj?rootStyles {||}
          objects = HashSet(backup obj?objects [||])
+         worldColliders = backup obj?worldColliders [||]
          renderOffset = backup obj?renderOffset vecOrigin
          canvasSize = backup obj?canvasSize vecOrigin
          postTickHooks = backup obj?postTickHooks [||]
