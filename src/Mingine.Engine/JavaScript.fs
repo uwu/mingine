@@ -104,22 +104,15 @@ jsConstructor<Scene>?prototype?addObject <- captureThis (fun this o -> this.obje
 jsConstructor<Scene>?prototype?removeObject <- captureThis (fun this o -> this.objects.Remove o)
 
 let createScene obj =
-    let this =
-        {scale = backup obj?scale 1.<_>
-         rootStyles = backup obj?rootStyles {||}
-         objects = HashSet(backup obj?objects [||])
-         worldColliders = backup obj?worldColliders [||]
-         renderOffset = backup obj?renderOffset vecOrigin
-         canvasSize = backup obj?canvasSize vecOrigin
-         postTickHooks = backup obj?postTickHooks [||]
-         postFrameHooks = backup obj?postFrameHooks [||]
-         eventHandlers = backup obj?eventHandlers [||]}
-
-    // UNCOMMMENT IF YOU EVER NEED VISUALISATION FOR DEBUG PURPOSES
-    //this <- Visualiser.initVis this
-    //window?REPORT_VEC <- Visualiser.createVisVec this vecOrigin vecOrigin
-    
-    this
+    {scale = backup obj?scale 1.<_>
+     rootStyles = backup obj?rootStyles {||}
+     objects = HashSet(backup obj?objects [||])
+     worldColliders = backup obj?worldColliders [||]
+     renderOffset = backup obj?renderOffset vecOrigin
+     canvasSize = backup obj?canvasSize vecOrigin
+     postTickHooks = backup obj?postTickHooks [||]
+     postFrameHooks = backup obj?postFrameHooks [||]
+     eventHandlers = backup obj?eventHandlers [||]}
 
 let createObject obj =
     if not obj?id then
@@ -128,10 +121,10 @@ let createObject obj =
     if not obj?blOffset then
         failwith "custom objects need a bottom-left offset setting"
 
-    if not obj?mass then
+    if isNullOrUndefined obj?mass then
         failwith "objects must have a mass"
 
-    if not obj?momentOfInertia then
+    if isNullOrUndefined obj?momentOfInertia then
         failwith "objects must have a moment of inertia"
 
     WrappedGObj
@@ -164,6 +157,9 @@ let createCircle obj =
                         NullCollider
 
     obj?blOffset <- {x = obj?radius; y = obj?radius}
+    
+    // 1/2 mr^2
+    obj?momentOfInertia <- obj?mass * (obj?radius * obj?radius) / 2
 
     createObject obj
 
@@ -182,6 +178,9 @@ let createRect obj =
                         NullCollider
 
     obj?blOffset <- bl
+    
+    // 1/12 m (h^2 + w^2)
+    obj?momentOfInertia <- obj?mass * (obj?height * obj?height + obj?width * obj?width) / 12
 
     createObject obj
 

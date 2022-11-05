@@ -47,20 +47,20 @@
 		],
         
         postFrameHooks: [
-	        ([s]) => {
+	        /*([s]) => {
 		        const objects = s.getObjects();
 		        const rotatingRect = objects.find(o => o.id === "ROTATING_RECT");
 
 		        rotatingRect.styles.borderColor = collidedThisFrame ? "red" : "";
 		        collidedThisFrame = false;
-            }
+            }*/
         ],
         
         // floor
         worldColliders: [ mg.createColliderPlane(mg.v(1, 0)) ],
 
 		objects: [
-			mg.createRect({
+			/*mg.createRect({
 				id: "ROTATING_RECT",
 				width: 0.4,
 				height: 0.3,
@@ -71,9 +71,7 @@
 					border: "1px solid black"
 				},
 				collide: true,
-				mass: 1,
-				// 1/12 m (h^2+w^2)
-				momentOfInertia: Infinity, // cba to type out full calc
+				mass: Infinity,//1,
 				angVelocity: 0.75,
 				angle: 0.85,
 				pos: mg.v(1, 0.75),
@@ -115,7 +113,30 @@
 
 					mg.forceModels.simpleDamping(0.25, 0.05)
 				]
-			}),
+			}),*/
+            
+            mg.createRect({
+	            id: "FALLING_RECT",
+	            width: 0.4,
+	            height: 0.3,
+	            styles: {
+		            // TODO: renderer system to handle (some!) styles
+		            width: `${0.4 * renderScale}px`,
+		            height: `${0.3 * renderScale}px`,
+		            border: "1px solid black"
+	            },
+	            collide: true,
+	            mass: 1,
+	            //angVelocity: 0.75,
+	            angle: 1.1,
+	            pos: mg.v(1, 0.75),
+
+	            restitutionCoeff: 0.9,
+                
+                forces: [
+	                mg.forceModels.weight(mg.consts.earthGravity),
+                ]
+            })
 		]
 	}));
 

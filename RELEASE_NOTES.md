@@ -12,6 +12,12 @@
   * All since last tick on the relevant game object
   * All since last tick globally
   * All since last frame globally
+- Add infinite plane colliders - great for floors and walls
+- Add world colliders, which are not tied to a game object and immovable
+- Fix incorrect minning of vectors for collision
+- The default styles no longer make objects look like they're clipping when close
+- `mg.createCircle()` and `mg.createRect()` now automatically calculate moments of inertia
+- Fix 0 masses breaking things
 
 ### 1.0.1
 - Fix some wrong typedefs
