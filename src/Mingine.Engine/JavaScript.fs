@@ -187,7 +187,7 @@ let createRect obj =
     obj?blOffset <- bl
     
     // 1/12 m (h^2 + w^2)
-    obj?momentOfInertia <- obj?mass * (obj?height * obj?height + obj?width * obj?width) / 12
+    obj?momentOfInertia <- (float obj?mass * (obj?height * obj?height + obj?width * obj?width)) / 12.
 
     createObject obj
 

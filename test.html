@@ -2,6 +2,7 @@
 
 <body>
 <div id="mingine-root"></div>
+<div id="readout"></div>
 </body>
 
 <style>
@@ -10,8 +11,17 @@
     }
 </style>
 
+<script>
+    const orig = console.log;
+	console.log = (...data) => {
+		document.getElementById("readout").textContent = data;
+		orig(...data);
+    }
+</script>
+
 <script type="module">
-	import * as mg from "./dist/JavaScript.js"
+	//import * as mg from "./dist/JavaScript.js"
+	import * as mg from "./distbundle.js"
     
 	window.mg = mg;
 

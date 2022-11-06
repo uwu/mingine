@@ -286,14 +286,19 @@ let collideGObjs c1 p1 c2 p2 =
 
 let private signf x = if x > 0.<_> then 1. else -1.
 
+// https://math.stackexchange.com/a/13263
+let private reflectOver<[<Measure>] 'u> (vec: Vec2<'u>) (normal: Vec2<_>): Vec2<'u> =
+    let d = vec |> Vec2.map Units.typedToFloat
+    let n = normal.norm
+    
+    d - ((d * n) * 2.) * n
+    |> Vec2.map Units.floatToTyped
+
 let respondToCollision p1 (mtv: Vec2<_>) m2 av2 point tStep =
-    // reflect velocity along our axis
-    // https://math.stackexchange.com/a/13263
-    let d = p1.velocity * 1.<_>
-    let n = mtv.norm
-    let reflectedVel =
-        d - ((d * n) * 2.) * n
-        |> Vec2.map Units.floatToTyped
+    let velFromAngular1 = (point - p1.pos).perp * (Units.mapFloatTyped tan (p1.angVelocity / 1.<Units.rad>))
+    let vel1 = p1.velocity + velFromAngular1
+    
+    let reflectedVel = reflectOver vel1 mtv
     
     let massProportion =
         if p1.mass = (infinity * 1.<_>) then
@@ -302,23 +307,21 @@ let respondToCollision p1 (mtv: Vec2<_>) m2 av2 point tStep =
             if m2 = (infinity * 1.<_>) then
                 1.
             else m2 / (p1.mass + m2)
-
-    let vel1 = (point - p1.pos).perp * (Units.mapFloatTyped tan (p1.angVelocity / 1.<Units.rad>))
-    
-    printfn $"{vel1}"
     
     // generate torque - first we need a force!
-    let velocityDiff = reflectedVel - p1.velocity
+    let velocityDiff = reflectedVel - vel1
     // generate an acceleration that will apply this velocity diff next frame
     let neededAccel = velocityDiff / tStep
     let force = neededAccel * p1.mass
-    let torque = (force +* (point - p1.pos)) * 0.1 // TODO work out more properly
+    let torque = (force +* (point - p1.pos)) * 0.1
     let neededAngAccel = torque / p1.momentOfInertia * 1.<Units.rad>
     let angVelChange = neededAngAccel * tStep
     
+    let finalVelocity = reflectedVel - (reflectOver velFromAngular1 mtv)
+    
     {p1 with
         pos = p1.pos + mtv
-        velocity = reflectedVel * p1.restitutionCoeff * massProportion
+        velocity = finalVelocity * p1.restitutionCoeff * massProportion
         angVelocity = p1.angVelocity + angVelChange}
 
 // TODO: ensure all "closest points" are definitely right 
