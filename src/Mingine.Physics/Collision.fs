@@ -286,7 +286,7 @@ let collideGObjs c1 p1 c2 p2 =
 
 let private signf x = if x > 0.<_> then 1. else -1.
 
-let respondToCollision p1 (mtv: Vec2<_>) m2 point tStep =
+let respondToCollision p1 (mtv: Vec2<_>) m2 av2 point tStep =
     // reflect velocity along our axis
     // https://math.stackexchange.com/a/13263
     let d = p1.velocity * 1.<_>
@@ -303,12 +303,16 @@ let respondToCollision p1 (mtv: Vec2<_>) m2 point tStep =
                 1.
             else m2 / (p1.mass + m2)
 
+    let vel1 = (point - p1.pos).perp * (Units.mapFloatTyped tan (p1.angVelocity / 1.<Units.rad>))
+    
+    printfn $"{vel1}"
+    
     // generate torque - first we need a force!
     let velocityDiff = reflectedVel - p1.velocity
     // generate an acceleration that will apply this velocity diff next frame
     let neededAccel = velocityDiff / tStep
     let force = neededAccel * p1.mass
-    let torque = (force +* (point - p1.pos)) * 0.1<_> // TODO work out more properly
+    let torque = (force +* (point - p1.pos)) * 0.1 // TODO work out more properly
     let neededAngAccel = torque / p1.momentOfInertia * 1.<Units.rad>
     let angVelChange = neededAngAccel * tStep
     

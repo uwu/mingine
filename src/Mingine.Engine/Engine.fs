@@ -126,7 +126,7 @@ let collideAllObjects engine _ =
                 |> Seq.choose (fun c2 ->
                     Collision.collideColliders o.o.collider c2 o.o.physicsObj.pos o.o.physicsObj.angle vecOrigin 0.<_>
                     |> Option.map Collision.resolveMTV
-                    |> Option.map (fun (v, p) -> v, p, infinity * 1.<_>)
+                    |> Option.map (fun (v, p) -> v, p, infinity * 1.<_>, 0.<_>)
                     )
             
             let collisions =
@@ -140,7 +140,7 @@ let collideAllObjects engine _ =
                                 | true, list -> engine.collisionCache[o] <- o2::list
                                 | _ -> engine.collisionCache[o] <- [o2]
                                 
-                                Some (mtv, point, o2.o.physicsObj.mass)
+                                Some (mtv, point, o2.o.physicsObj.mass, o2.o.physicsObj.angVelocity)
                             )
                 |> Seq.append worldCollisions
                 |> Seq.toArray
@@ -151,19 +151,20 @@ let collideAllObjects engine _ =
                 Some (
                     o,
                     collisions
-                    |> Collections.Array.reduce (fun (v1, p1, m1) (v2, p2, m2) ->
-                        if v1.len < v2.len then (v1, p1, m1) else (v2, p2, m2))
+                    |> Collections.Array.reduce (fun (v1, p1, m1, av1) (v2, p2, m2, av2) ->
+                        if v1.len < v2.len then (v1, p1, m1, av1) else (v2, p2, m2, av2))
                 )
             )
 
     // mutability bad but also itd be more comfy :skull:
-    for obj, (mtv, point, m2) in objects do
+    for obj, (mtv, point, m2, av2) in objects do
         obj.o <-
             {obj.o with
                 physicsObj = Collision.respondToCollision
                     obj.o.physicsObj
                     (mtv * 1.<_>) // TODO remove this unit fix
                     m2
+                    av2
                     point
                     (1. / 200.) (*0.<_>*) }
 
