@@ -18,6 +18,7 @@
 - The default styles no longer make objects look like they're clipping when close
 - `mg.createCircle()` and `mg.createRect()` now automatically calculate moments of inertia
 - Fix 0 masses breaking things
+- Impulses can now be applied from offset positions (//TODO: test)
 
 ### 1.0.1
 - Fix some wrong typedefs

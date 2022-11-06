@@ -53,10 +53,17 @@ Constructors.Object.assign (
 )
 |> ignore
 
-jsConstructor<PhysicsObj>?prototype?impulse <-
-        captureThis (fun this force ->
+Constructors.Object.assign (
+    jsConstructor<PhysicsObj>?prototype,
+    {|impulse = captureThis (fun this force ->
             Constructors.Object.assign(this, Simulator.impulse force this) |> ignore
             )
+      osetImpulse = captureThis (fun this force origin ->
+            Constructors.Object.assign(this, Simulator.osetImpulse force origin this) |> ignore
+            )|}
+)
+|> ignore
+
 
 /////////////////////////////////////
 // END IMPERATIVE MODULE LOAD CODE //

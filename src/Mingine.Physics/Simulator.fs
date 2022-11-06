@@ -78,4 +78,11 @@ let updateObjectPos pObj timeStep =
         angAccel = newAngAccel
         angVelocity = newAngVelocity}
 
-let impulse (force: Vec2<_>) pObj = { pObj with accel = pObj.accel + (force / pObj.mass) }
+let osetImpulse (force: Vec2<_>) origin pObj =
+    {
+        pObj with
+            accel = pObj.accel + (force / pObj.mass)
+            angAccel = pObj.angAccel + ((force +* origin) * 1.<rad> / pObj.momentOfInertia)
+    }
+
+let impulse (force: Vec2<_>) pObj = osetImpulse force Vec2.origin pObj
