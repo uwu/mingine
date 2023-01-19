@@ -302,10 +302,12 @@ let createEngine scene =
                 this.stop <-
                     (fun () ->
                         cancel <- true
+                        this.running <- true
                         // clear the interval if intervalCode is Some(int), do nothing if None
                         Option.map clearInterval intervalCode |> ignore
                         this.stop <- defaultStopFunc)
 
-                this.lastTick <- performance.now ())}
+                this.lastTick <- performance.now ()
+                this.running <- true)}
 
     this

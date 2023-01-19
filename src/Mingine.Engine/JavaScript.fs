@@ -165,6 +165,7 @@ let createCircle obj =
 
     obj?blOffset <- {x = obj?radius; y = obj?radius}
     
+    debugger()
     // 1/2 mr^2
     obj?momentOfInertia <- obj?mass * (obj?radius * obj?radius) / 2
 
@@ -187,7 +188,7 @@ let createRect obj =
     obj?blOffset <- bl
     
     // 1/12 m (h^2 + w^2)
-    obj?momentOfInertia <- obj?mass * (obj?height * obj?height + obj?width * obj?width) / 12
+    obj?momentOfInertia <- (float obj?mass * (obj?height * obj?height + obj?width * obj?width)) / 12.
 
     createObject obj
 
