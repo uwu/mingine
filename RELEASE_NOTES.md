@@ -1,4 +1,4 @@
-### pending
+### 1.1.0
 - Cleanup engine code using `this`
 - Add `Vec2.atAngle` / `mg.vAngle()`
 - Add `Simulator.impulse` / `physicsObj.prototype.impulse()`

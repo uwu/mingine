@@ -125,10 +125,12 @@
 	            angle: 1.1,
 	            pos: mg.v(1, 0.75),
 
-	            restitutionCoeff: 0.9,
+	            restitutionCoeff: 0.6,
                 
                 forces: [
 	                mg.forceModels.weight(mg.consts.earthGravity),
+                    mg.forceModels.spring(50, mg.v(1, 1), mg.v(0.2, 0.15)),
+                    mg.forceModels.simpleDamping(0.25, 0.05)
                 ]
             })
 		]
