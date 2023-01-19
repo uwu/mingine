@@ -17,10 +17,12 @@ let private eventNames =
     |> Collections.Array.choose (fun s -> if s.StartsWith "on" then Some(s.Substring 2) else None)
 
 let requiredRootStyles =
-    {|position = "relative"|}
+    {|position = "relative"
+      boxSizing = "border-box"|}
 
 let requiredElementStyles =
-    {|position = "absolute"|}
+    {|position = "absolute"
+      boxSizing = "border-box"|}
 
 let inline applyStyles (elem: HTMLElement) (styles: obj) =
     Constructors.Object.assign (elem?style, styles)
