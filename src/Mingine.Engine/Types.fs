@@ -1,4 +1,4 @@
-module Mingine.Engine.Types
+namespace Mingine.Types.Engine
 
 open Browser.Types
 open Mingine.Types

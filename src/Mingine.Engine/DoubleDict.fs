@@ -1,4 +1,4 @@
-namespace Mingine.Engine.Types
+namespace Mingine.Types.Engine
 
 open System.Collections.Generic
 

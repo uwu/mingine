@@ -6,7 +6,7 @@ open Fable.Core.JS
 open Browser.Dom
 open Fable.Core.DynamicExtensions
 open Mingine.Types
-open Mingine.Engine.Types
+open Mingine.Types.Engine
 open Mingine
 open Mingine.Physics
 open Fable.Core.JsInterop
