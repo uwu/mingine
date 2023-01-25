@@ -85,4 +85,4 @@ let osetImpulse (force: Vec2<_>) origin pObj =
             angAccel = pObj.angAccel + ((force +* origin) * 1.<rad> / pObj.momentOfInertia)
     }
 
-let impulse (force: Vec2<_>) pObj = osetImpulse force Vec2.origin pObj
+let impulse force = osetImpulse force Vec2.origin
