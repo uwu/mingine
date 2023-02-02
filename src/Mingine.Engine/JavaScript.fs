@@ -173,7 +173,7 @@ let createCircle obj =
     
     debugger()
     // 1/2 mr^2
-    obj?momentOfInertia <- obj?mass * (obj?radius * obj?radius) / 2
+    obj?momentOfInertia <- obj?mass * (obj?radius * obj?radius) / 2.
 
     createObject obj
 

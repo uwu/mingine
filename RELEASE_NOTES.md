@@ -1,3 +1,6 @@
+### pending
+- Fix circles having a moment of inertia of 0
+
 ### 1.1.1
 - Fix broken bundle due to [issue in beta version of Fable](https://github.com/fable-compiler/Fable/issues/3306)
 
