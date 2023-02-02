@@ -11,8 +11,14 @@ open Mingine
 open Mingine.Physics
 open Fable.Core.JsInterop
 
+// TODO remove
 // workaround for F# compiler internal error kekw
 let private vecOrigin = { x = 0.<_>; y = 0.<_> } // Vec2.origin
+
+// TODO remove
+// workaround for fable bug
+[<Emit("Object.assign($0, $1)")>]
+let private assign _ _ = jsNative<unit>
 
 [<Emit("function(...a){return($0)(this, ...a)}")>]
 let private captureThis<'this, 'a, 'r> (_: 'this -> 'a -> 'r): 'a -> 'r  = jsNative
@@ -36,8 +42,8 @@ jsConstructor<Engine.EngineWrap>?prototype.[tsTag] <- "Engine"
 // see below comment for why pre-captureThis method used
 let private v2rot angle other = (jsThis: Vec2<_>).rotate angle other
 
-Constructors.Object.assign (
-    jsConstructor<Vec2<_>>?prototype,
+assign //(
+    jsConstructor<Vec2<_>>?prototype//,
     {|add = captureThis (fun (this: Vec2<_>) other -> this + other)
       sub = captureThis (fun (this: Vec2<_>) other -> this - other)
       neg = captureThis (fun (this: Vec2<_>) () -> -this)
@@ -50,19 +56,19 @@ Constructors.Object.assign (
       norm = captureThis (fun (this: Vec2<_>) () -> this.norm)
       angleTo = captureThis (fun (this: Vec2<_>) other -> this.angleTo other)
       perp = captureThis (fun (this: Vec2<_>) () -> this.perp)|}
-)
-|> ignore
+//)
+//|> ignore
 
-Constructors.Object.assign (
-    jsConstructor<PhysicsObj>?prototype,
+assign //(
+    jsConstructor<PhysicsObj>?prototype//,
     {|impulse = captureThis (fun this force ->
-            Constructors.Object.assign(this, Simulator.impulse force this) |> ignore
+            (*Constructors.Object.*)assign this (Simulator.impulse force this) //|> ignore
             )
       osetImpulse = captureThis (fun this force origin ->
-            Constructors.Object.assign(this, Simulator.osetImpulse force origin this) |> ignore
+            (*Constructors.Object.*)assign this (Simulator.osetImpulse force origin this) //|> ignore
             )|}
-)
-|> ignore
+//)
+//|> ignore
 
 
 /////////////////////////////////////

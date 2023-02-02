@@ -1,3 +1,6 @@
+### 1.1.1
+- Fix broken bundle due to [issue in beta version of Fable](https://github.com/fable-compiler/Fable/issues/3306)
+
 ### 1.1.0
 - Cleanup engine code using `this`
 - Add `Vec2.atAngle` / `mg.vAngle()`

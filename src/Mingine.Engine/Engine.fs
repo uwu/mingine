@@ -3,6 +3,7 @@ module Mingine.Engine
 open System.Collections.Generic
 open Browser
 open Browser.Types
+open Fable.Core
 open Fable.Core.JS
 open Fable.Core.JsInterop
 open Mingine.Types
@@ -24,9 +25,14 @@ let requiredElementStyles =
     {|position = "absolute"
       boxSizing = "border-box"|}
 
+// TODO remove
+// workaround for fable bug
+[<Emit("Object.assign($0, $1)")>]
+let ___assign _ _ = jsNative<unit>
+
 let inline applyStyles (elem: HTMLElement) (styles: obj) =
-    Constructors.Object.assign (elem?style, styles)
-    |> ignore
+    (*Constructors.Object.*)___assign elem?style styles
+    //|> ignore
 
 /// options to control the engine
 type StartOpts =
