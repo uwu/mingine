@@ -7,14 +7,19 @@
   "types": "Mingine.Engine.JavaScript.d.ts",
   "scripts": {
     "clean": "rm -rf dist node_modules src/*/bin src/*/obj distbundle.js",
-    "build": "dotnet fable src/Mingine.Engine -o dist && esbuild dist/JavaScript.js --outfile=distbundle.js --bundle --format=esm",
+    "build:fable": "dotnet fable src/Mingine.Engine -o dist",
+    "build:compress": "node compress.mjs",
+    "build:bundle": "esbuild dist/JavaScript.js --outfile=distbundle.js --bundle --format=esm",
+    "build": "\"$npm_execpath\" run build:fable && \"$npm_execpath\" run build:compress && \"$npm_execpath\" run build:bundle",
     "deps": "\"$npm_execpath\" i && dotnet tool restore && dotnet femto src/Mingine.Engine",
     "prepublishOnly": "\"$npm_execpath\" run clean && \"$npm_execpath\" run deps && \"$npm_execpath\" run build"
   },
   "author": "Yellowsink",
   "license": "Unlicense",
   "devDependencies": {
-    "esbuild": "^0.15.5"
+    "@swc/core": "^1.3.37",
+    "esbuild": "^0.15.5",
+    "fast-glob": "^3.2.12"
   },
   "repository": "github:uwu/mingine",
   "type": "module"

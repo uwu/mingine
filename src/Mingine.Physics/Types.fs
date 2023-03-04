@@ -11,30 +11,27 @@ type Vec2<[<Measure>] 'u> =
      y: float<'u>}
     
     /// origin in 2d space
-    static member origin = {x = 0.<_>; y = 0.<_>}
+    static member origin = {x = 0.<_>; y = 0.<_>} : Vec2<'u>
 
     /// map function over both vec components
-    static member map<[<Measure>] 'u, [<Measure>] 'v> (f: float<'u> -> float<'v>) (v: Vec2<'u>) : Vec2<'v> =
+    static member inline map<[<Measure>] 'u, [<Measure>] 'v> (f: float<'u> -> float<'v>) (v: Vec2<'u>) : Vec2<'v> =
         {x = f v.x; y = f v.y}
 
     /// map function over both vec components of two vecs
-    static member map2 f v1 v2 = {x = f v1.x v2.x; y = f v1.y v2.y}
+    static member inline map2 f v1 v2 = {x = f v1.x v2.x; y = f v1.y v2.y}
 
     /// map function over both vec components, also passing an extra param in
-    static member maps f v s = {x = f v.x s; y = f v.y s}
+    static member inline maps f v s = {x = f v.x s; y = f v.y s}
 
     /// map function over both vec components, also passing an extra param first
-    static member smap f s v = {x = f s v.x; y = f s v.y}
+    static member inline smap f s v = {x = f s v.x; y = f s v.y}
 
     static member (~+)(v: Vec2<'u>) = v
-    static member (~-) v = Vec2<'u>.origin - v
+    static member (~-) v = Vec2<'u>.map (~-) v
 
     static member (+)(v1, v2) = (Vec2<'u>.map2 (+)) v1 v2
 
-    static member (-)(v1, v2) =
-        (Vec2<'u>.map typedToFloat v1, Vec2<'u>.map typedToFloat v2)
-        ||> (Vec2<'u>.map2 (-))
-        |> Vec2.map floatToTyped<'u>
+    static member (-)(v1, v2) = Vec2<'u>.map2 (-) v1 v2
 
     // dot product
     static member (*)(v1, v2) = (v1.x * v2.x) + (v1.y * v2.y)
@@ -49,14 +46,12 @@ type Vec2<[<Measure>] 'u> =
     static member (/)(s, v) = (Vec2<'u>.smap (/)) s v
     
     
-    static member atAngle (angle: float<rad>) : Vec2<1> = { x = cos (-angle * 1.<_>); y = sin (-angle * 1.<_>) }
+    static member atAngle (angle: float<rad>) : Vec2<1> = { x = cos (typedToFloat -angle); y = sin (typedToFloat -angle) }
     
-    member vec.len = // ew
-        let untypedVec =
-            Vec2<'u>.map typedToFloat vec
-
-        (untypedVec.x ** 2 + untypedVec.y ** 2)
-        |> Math.Sqrt
+    member vec.len =
+        vec.x * vec.x + vec.y * vec.y
+        |> typedToFloat
+        |> sqrt
         |> floatToTyped<'u>
 
     member v.rotate (typedAngle: float<rad>) origin =
