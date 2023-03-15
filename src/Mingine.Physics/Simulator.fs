@@ -6,21 +6,22 @@ open Mingine.Units
 open FSharp.Data.UnitSystems.SI.UnitSymbols
 open FSharp.Collections
 
-let private guardFloatInstability<[<Measure>] 'u> =
-    mapFloatTyped<'u> (fun value ->
-        if Double.IsNaN value || Math.Abs value = infinity then
-            0.
-        else
-            value)
+let private guardFloatInstability value =
+    let untyped = typedToFloat value
+
+    if Double.IsNaN untyped
+       || untyped = Double.PositiveInfinity
+       || untyped = Double.NegativeInfinity then
+        0.<_>
+    else
+        value
 
 let inline private guardForceTorqueInstability (f, t) =
     Vec2.map guardFloatInstability f, guardFloatInstability t
 
 let calcForcesAndTorques (gObj: PhysicsObj) (timeStep: float<s>) =
-    let forcesAndTorques =
-        gObj.forces
-        |> Array.map (fun f -> f (gObj, timeStep))
-    
+    let forcesAndTorques = gObj.forces |> Array.map (fun f -> f (gObj, timeStep))
+
     if forcesAndTorques.Length = 0 then
         Vec2.origin, 0.<_>
     else
@@ -54,20 +55,16 @@ let updateObjectPos pObj timeStep =
     // radians are dimensionless so are not part of the torque nor moment of inertia units, so add them in with *1rad
     let newAccel = force / pObj.mass
 
-    let newAngAccel =
-        torque / pObj.momentOfInertia * 1.<rad>
+    let newAngAccel = torque / pObj.momentOfInertia * 1.<rad>
 
     let avgAccel = (pObj.accel + newAccel) / 2.
 
-    let avgAngAccel =
-        (pObj.angAccel + newAngAccel) / 2.
+    let avgAngAccel = (pObj.angAccel + newAngAccel) / 2.
 
     // update this tick velocity
-    let newVelocity =
-        pObj.velocity + (avgAccel * timeStep)
+    let newVelocity = pObj.velocity + (avgAccel * timeStep)
 
-    let newAngVelocity =
-        pObj.angVelocity + (avgAngAccel * timeStep)
+    let newAngVelocity = pObj.angVelocity + (avgAngAccel * timeStep)
 
     {pObj with
         pos = newPos
@@ -79,10 +76,8 @@ let updateObjectPos pObj timeStep =
         angVelocity = newAngVelocity}
 
 let osetImpulse (force: Vec2<_>) origin pObj =
-    {
-        pObj with
-            accel = pObj.accel + (force / pObj.mass)
-            angAccel = pObj.angAccel + ((force +* origin) * 1.<rad> / pObj.momentOfInertia)
-    }
+    {pObj with
+        accel = pObj.accel + (force / pObj.mass)
+        angAccel = pObj.angAccel + ((force +* origin) * 1.<rad> / pObj.momentOfInertia)}
 
 let impulse force = osetImpulse force Vec2.origin

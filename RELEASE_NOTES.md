@@ -1,6 +1,6 @@
 ### pending
 - Fix circles having a moment of inertia of 0
-- Optimize core vector operations & compiled output
+- Optimize core vector operations, integrator checks & compiled output
 
 ### 1.1.1
 - Fix broken bundle due to [issue in beta version of Fable](https://github.com/fable-compiler/Fable/issues/3306)
