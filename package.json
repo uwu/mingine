@@ -1,6 +1,6 @@
 {
   "name": "mingine-engine",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A truly mini physics and game engine for the web",
   "main": "distbundle.js",
   "module": "distbundle.js",
@@ -11,7 +11,7 @@
     "build:compress": "node compress.mjs",
     "build:bundle": "esbuild dist/JavaScript.js --outfile=distbundle.js --bundle --format=esm",
     "build": "\"$npm_execpath\" run build:fable && \"$npm_execpath\" run build:compress && \"$npm_execpath\" run build:bundle",
-    "deps": "\"$npm_execpath\" i && dotnet tool restore && dotnet femto src/Mingine.Engine",
+    "deps": "\"$npm_execpath\" i && dotnet restore && dotnet tool restore",
     "prepublishOnly": "\"$npm_execpath\" run clean && \"$npm_execpath\" run deps && \"$npm_execpath\" run build"
   },
   "author": "Yellowsink",
