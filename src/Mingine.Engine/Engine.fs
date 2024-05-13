@@ -1,5 +1,6 @@
 module Mingine.Engine
 
+open System.Collections
 open System.Collections.Generic
 open Browser
 open Browser.Types
@@ -53,10 +54,8 @@ type EngineWrap =
      // keeps track of mounted elements
      mutable gObjMountedCache: DoubleDict<WrappedGObj, HTMLElement>
 
-     // this cache is purely to provide less crappy collision queries to the API
-     // if you do not query collisions the building and storage of this cache is
-     // pure cpu and memory overhead. I don't care enough to provide a way to disable it.
-     mutable collisionCache: Dictionary<WrappedGObj, WrappedGObj list>
+     // used both for the collision api and for the actual algo
+     mutable collisionCache: Dictionary<WrappedGObj, WrappedGObj HashSet>
      queryCollision: WrappedGObj -> WrappedGObj -> bool
      
      // these caches are internal only.
@@ -125,7 +124,61 @@ let renderGameObjects engine =
 let collideAllObjects engine _ =
     engine.collisionCache.Clear()
 
-    let objects =
+    // yes this is all mutable state, whatever.
+    
+    for obj in engine.scene.objects do
+        let worldCollisions = // TODO
+            engine.scene.worldColliders
+            |> Seq.choose (fun c2 ->
+                Collision.collideColliders obj.o.collider c2 obj.o.physicsObj.pos obj.o.physicsObj.angle vecOrigin 0.<_>
+                |> Option.map Collision.resolveMTV
+                )
+        
+        let set =
+            if engine.collisionCache.ContainsKey obj
+            then engine.collisionCache[obj]
+            else
+                let h = HashSet()
+                engine.collisionCache.Add(obj, h)
+                h
+        
+        let collisions = List()
+        
+        for obj2 in engine.scene.objects |> Seq.except [|obj|] do
+            // only one collision per pair of objects
+            if not (engine.collisionCache.ContainsKey obj2 && engine.collisionCache[obj2].Contains obj)
+            then
+                ignore <| set.Add obj2
+                
+                if engine.collisionCache.ContainsKey obj2
+                then ignore <| engine.collisionCache[obj2].Add obj
+                else
+                    engine.collisionCache.Add(obj2, HashSet([|obj|]))
+                
+                match Collision.collideObjs obj.o.collider obj.o.physicsObj obj2.o.collider obj2.o.physicsObj with
+                | None -> ()
+                | Some mtv ->
+                    let resolved1, resolved2 =
+                        Collision.resolveCollision
+                            obj.o.collider obj.o.physicsObj
+                            obj2.o.collider obj2.o.physicsObj
+                    
+                    collisions.Add (mtv.len, resolved1, resolved2, obj2)
+        
+        // why do we use the smallest possible collision? idrk ask 2022 me -- sink 2024
+        // size of mtv, self phys obj, other phys obj, other wrappedgobj
+        if collisions.Count > 0 then
+            let _len, newo1, newo2, wo2 =
+                collisions
+                |> Seq.reduce (fun c1 c2 ->
+                    let l1, _, _, _ = c1
+                    let l2, _, _, _ = c2
+                    if l1 > l2 then c1 else c2)
+            
+            obj.o <- { obj.o with physicsObj = newo1 }
+            wo2.o <- { wo2.o with physicsObj = newo2 }
+    
+    (*let objects =
         engine.scene.objects
         |> Seq.choose (fun o ->
             let worldCollisions =
@@ -178,7 +231,7 @@ let collideAllObjects engine _ =
                         velocity = r * 1.<_> * obj.o.physicsObj.restitutionCoeff
                         pos =
                             obj.o.physicsObj.pos
-                            + (Vec2.map Units.floatToTyped v)}}
+                            + (Vec2.map Units.floatToTyped v)}}*)
 
 let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY
@@ -230,8 +283,8 @@ let createEngine scene =
          frameEventCache = []
          
          queryCollision = (fun o1 o2 ->
-             (this.collisionCache.ContainsKey o1 && (this.collisionCache[o1] |> List.contains o2))
-             || (this.collisionCache.ContainsKey o2 && (this.collisionCache[o2] |> List.contains o1)))
+             (this.collisionCache.ContainsKey o1 && (this.collisionCache[o1].Contains o2))
+             || (this.collisionCache.ContainsKey o2 && (this.collisionCache[o2].Contains o1)))
 
          mount = (fun elem ->
              for eventName in eventNames do

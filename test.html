@@ -41,20 +41,20 @@
 		],
         
         postFrameHooks: [
-	        /*([s]) => {
+	        ([s]) => {
 		        const objects = s.getObjects();
 		        const rotatingRect = objects.find(o => o.id === "ROTATING_RECT");
 
 		        rotatingRect.styles.borderColor = collidedThisFrame ? "red" : "";
 		        collidedThisFrame = false;
-            }*/
+            }
         ],
         
         // floor
         worldColliders: [ mg.createColliderPlane(mg.v(1, 0)) ],
 
 		objects: [
-			/*mg.createRect({
+			mg.createRect({
 				id: "ROTATING_RECT",
 				width: 0.4,
 				height: 0.3,
@@ -107,9 +107,9 @@
 
 					mg.forceModels.simpleDamping(0.25, 0.05)
 				]
-			}),*/
+			}),
             
-            mg.createRect({
+            /*mg.createRect({
 	            id: "FALLING_RECT",
 	            width: 0.4,
 	            height: 0.3,
@@ -132,7 +132,7 @@
                     mg.forceModels.spring(50, mg.v(1, 1), mg.v(0.2, 0.15)),
                     mg.forceModels.simpleDamping(0.25, 0.05)
                 ]
-            })
+            })*/
 		]
 	}));
 

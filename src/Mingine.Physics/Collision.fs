@@ -275,6 +275,15 @@ let resolveCollision c1 p1 c2 p2 =
     | None -> p1, p2
     | Some(mtv) ->
         
+        // i think 10^308 is an acceptable stand in for infinity, probably.
+        let inline guardInf x =
+            if (Units.typedToFloat x) = infinity then System.Double.MaxValue * 1.<_>
+            //else if (Units.typedToFloat x) = -infinity then System.Double.MinValue * 1.<_>
+            else x
+        
+        let m1 = guardInf p1.mass
+        let m2 = guardInf p2.mass
+        
         // this is of course, not correct, you cannot assign an `e` to an individual surface/object, but it's good enough.
         // https://gamedev.net/forums/topic/321575-coefficients-of-restitution-and-friction/3070963/
         let e = p1.restitutionCoeff * p2.restitutionCoeff
@@ -304,7 +313,7 @@ let resolveCollision c1 p1 c2 p2 =
         *)
         
         // pre-compute re-used values
-        let m1m2 = p1.mass + p2.mass
+        let m1m2 = m1 + m2
         let e1 = e + 1.
         
         // project velocities to the parallel direction
@@ -312,16 +321,16 @@ let resolveCollision c1 p1 c2 p2 =
         let v = p2.velocity * mtvNorm
         
         // perform collision
-        let w = ( u * (p1.mass - e * p2.mass) + v * p2.mass * e1 ) / m1m2
-        let x = ( v * (p2.mass - e * p1.mass) + u * p1.mass * e1 ) / m1m2
+        let w = ( u * (m1 - e * m2) + v * m2 * e1 ) / m1m2
+        let x = ( v * (m2 - e * m1) + u * m1 * e1 ) / m1m2
         
         // reconstitute velocities
         let finalv1 = mtvNorm * w + mtvNPerp * perpv1
         let finalv2 = mtvNorm * x + mtvNPerp * perpv2
         
         // apply MTV to objects to un-intersect them. Just do it proportionally to masses because its easy.
-        let pos1 = p1.pos + (mtv * (p2.mass / m1m2))
-        let pos2 = p2.pos + (mtv * (p1.mass / m1m2))
+        let pos1 = p1.pos + (mtv * (m2 / m1m2))
+        let pos2 = p2.pos + (mtv * (m1 / m1m2))
         
         let newP1 = { p1 with pos = pos1; velocity = finalv1 }
         let newP2 = { p2 with pos = pos2; velocity = finalv2 }
