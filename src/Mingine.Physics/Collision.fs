@@ -22,14 +22,14 @@ let private getRectNormals (bl, tr) angle =
     [|normR; normB|]
 
 
-let private absMin v1 v2 = if (abs v1) < (abs v2) then v1 else v2
+let private absMin v1 v2: float<_> = if (abs v1) < (abs v2) then v1 else v2
 
-let private absMin2 v1 v2 =
+let private absMin2 v1 v2: float<_> * _ =
     if (abs (fst v1)) < (abs (fst v2)) then
         v1
     else v2
 
-let private absMax2 v1 v2 =
+let private absMax2 v1 v2: float<_> * _ =
     if (abs (fst v1)) > (abs (fst v2)) then
         v1
     else v2
@@ -65,29 +65,29 @@ let private maxOptionsOr o1 o2 =
         | Some v2 -> Some(absMax2 v1 v2)
 
 /// takes an axis and a list of points, returns the min and max point of the projection
-let projectPolygonToAxis (axis: Vec2<_>) (points: list<_>) =
+let projectPolygonToAxis (axis: Vec2<1>) (points: list<Vec2<_>>) =
     let startVal =
-        axis * points[0] |> Units.typedToFloat
+        axis * points[0]
 
     points
     |> List.skip 1
     |> List.fold
         (fun (currMin, currMax) point ->
             let proj =
-                axis * point |> Units.typedToFloat
+                axis * point
 
             min proj currMin, max proj currMax)
         (startVal, startVal)
 
 /// takes an axis and circle, returns the min and max point of the projection
-let projectCircleToAxis (axis: Vec2<_>) (rad, center: Vec2<_>) =
+let projectCircleToAxis (axis: Vec2<1>) (rad, center: Vec2<_>) =
     let centerPoint =
-        axis * center |> Units.typedToTyped
+        axis * center
 
-    centerPoint - rad |> Units.typedToFloat, centerPoint + rad |> Units.typedToFloat
+    centerPoint - rad, centerPoint + rad
 
 /// checks if two projections overlap. the pairs of values are expected to be (min, max)
-let checkProjectionOverlap (min1, max1) (min2, max2) =
+let checkProjectionOverlap (min1: float<_>, max1) (min2, max2) =
     // some of these tests may be unnecessary but that's what short circuits are for
     (min1 < min2 && min2 < max1) // min2 is inside range 1
     || (min1 < max2 && max2 < max1) // max2 is inside range 1
@@ -105,24 +105,24 @@ let getProjectionOverlap (min1, max1) (min2, max2) =
         None
 
 /// gets MTV if a plane collider is colliding with another given collider
-let rec collideWithPlane (axis: Vec2<_>, oset) pos1 angle1 c2 pos2 angle2 =
+let rec collideWithPlane (axis: Vec2<1>, oset) pos1 _angle1 c2 pos2 angle2 =
     
     // without * -1 the normal is clockwise of the line
     // this is an entirely arbitrary decision however with it this way,
     // an axis of (1, 0) makes a usable floor, which is intuitive.
     let normal = axis.perp.norm * -1.
     
-    let checkOlap (proj1 : float, proj2 : float) =
-        if proj1 < 0 then Some(abs proj1, normal)
-        else if proj2 < 0 then Some(abs proj2, normal)
+    let checkOlap (proj1, proj2) =
+        if proj1 < 0.<_> then Some(abs proj1, normal)
+        else if proj2 < 0.<_> then Some(abs proj2, normal)
         else None
     
     match c2 with
     | NullCollider -> None
     | CompositeCollider(a, b) ->
         maxOptionsOr
-            (collideWithPlane (axis, oset) pos1 angle1 a pos2 angle2)
-            (collideWithPlane (axis, oset) pos1 angle1 b pos2 angle2)
+            (collideWithPlane (axis, oset) pos1 _angle1 a pos2 angle2)
+            (collideWithPlane (axis, oset) pos1 _angle1 b pos2 angle2)
     
     | PlaneCollider _ -> None // if infinite planes can collide with each other this would cause havoc
     | CircularCollider(rad, center) ->
@@ -154,7 +154,7 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
             (rad + otherRad) - (abs vecToOther.len)
 
         if overlapAmount > 0.<_> then
-            Some(Units.typedToFloat -overlapAmount, vecToOther * 1.<_>)
+            Some(-overlapAmount, vecToOther * 1.<_>)
         else
             None
 
@@ -198,7 +198,7 @@ let rec collideWithCircle (rad, center) pos collider otherPos otherAngle =
                         | None -> None
                         | Some rp -> Some(absMin2 (rp, -axis) c)
                     )
-                (Some(infinity, Vec2.origin))
+                (Some(infinity |> Units.floatToTyped, Vec2.origin))
 
         minOptionsAnd
             circleSpecificCheck
@@ -240,7 +240,7 @@ let rec collideWithRect (bl, tr) pos angle collider otherPos otherAngle =
                         | None -> None
                         | Some rp -> Some(absMin2 (rp, axis) c)
                     )
-                (Some(infinity, Vec2.origin))
+                (Some(infinity |> Units.floatToTyped, Vec2.origin))
 
 /// resolves an MTV into one vector
 let resolveMTV (mag: float<_>, vec: Vec2<_>) = vec.norm * mag
