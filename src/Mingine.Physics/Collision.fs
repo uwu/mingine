@@ -281,7 +281,7 @@ let rec resolveCollision c1 p1 c2 p2 =
         | ImmovablePObj _ -> p1, p2 // both are infinite mass, no-op
         | _ ->
             let np1, np2 = resolveCollision c2 p2 c1 p1 // flip the args to deduplicate work
-            np2, np1 // this is not tail recursion
+            np2, np1 // without this swap, the gameobjects swap their physicsobjects, which is very funny to watch
     | _ ->
         // first mass is definitely finite
         match collideObjs c1 p1 c2 p2 with
@@ -303,7 +303,22 @@ let rec resolveCollision c1 p1 c2 p2 =
             
             match p2 with
             | ImmovablePObj _ -> // one mass is infinite (the second one), so we have a simpler case for the collision
-                p1, p2 // TODO
+                
+                let mtvNorm = mtv.norm
+                let mtvNPerp = mtvNorm.perp
+                
+                // un-intersect the objects
+                let newPos = p1.pos + mtv
+                
+                // see the comment below about this
+                let restitution = p1.restitutionCoeff * p2.restitutionCoeff
+                
+                // reflect the velocity across the axis of the collision, and apply restitution
+                let perpVel = p1.velocity * mtvNPerp
+                let newParaVel = -restitution * (p1.velocity * mtvNorm)
+                let newVel = mtvNorm * newParaVel + mtvNPerp * perpVel
+                
+                { p1 with pos = newPos; velocity = newVel }, p2
             | _ ->
                 // two finite masses, standard collision case.
             
