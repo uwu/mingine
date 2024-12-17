@@ -1,4 +1,4 @@
-### pending
+### 1.1.3
 - Work around compiler bug introducing NaNs
 - Make collision HUGELY better
 
