@@ -268,71 +268,97 @@ let collideObjs c1 p1 c2 p2 =
         p2.angle
     |> Option.map resolveMTV
 
+// Fable doesn't have F# 9's bool return support.
+let inline (|ImmovablePObj|_|) p = if Units.typedToFloat p.mass = infinity then Some () else None
+
 // given a pair of objects that may be colliding, resolve their collision
 // you should NOT pass duplicate pairs! - TODO: find out if this is actually a bug causer or just plain slow
-let resolveCollision c1 p1 c2 p2 =
-    match collideObjs c1 p1 c2 p2 with
-    | None -> p1, p2
-    | Some(mtv) ->
-        
-        // i think 10^308 is an acceptable stand in for infinity, probably.
-        let inline guardInf x =
-            if (Units.typedToFloat x) = infinity then System.Double.MaxValue * 1.<_>
-            //else if (Units.typedToFloat x) = -infinity then System.Double.MinValue * 1.<_>
-            else x
-        
-        let m1 = guardInf p1.mass
-        let m2 = guardInf p2.mass
-        
-        // this is of course, not correct, you cannot assign an `e` to an individual surface/object, but it's good enough.
-        // https://gamedev.net/forums/topic/321575-coefficients-of-restitution-and-friction/3070963/
-        let e = p1.restitutionCoeff * p2.restitutionCoeff
-        
-        // don't recompute these tons of times
-        let mtvNorm = mtv.norm
-        let mtvNPerp = mtvNorm.perp
-        
-        // find perpendicular velocities, which will be untouched
-        let perpv1 = p1.velocity * mtvNPerp
-        let perpv2 = p2.velocity * mtvNPerp
-        
-        (*
-            for parallel to MTV direction (where u, v, w, x are VELOCITIES):
-            u  v
-            -> ->
-            w  x
+let rec resolveCollision c1 p1 c2 p2 =
+    
+    match p1 with
+    | ImmovablePObj ->
+        match p2 with
+        | ImmovablePObj _ -> p1, p2 // both are infinite mass, no-op
+        | _ ->
+            let np1, np2 = resolveCollision c2 p2 c1 p1 // flip the args to deduplicate work
+            np2, np1 // this is not tail recursion
+    | _ ->
+        // first mass is definitely finite
+        match collideObjs c1 p1 c2 p2 with
+        | None -> p1, p2
+        | Some(rawMtv) ->
             
-            x - w == e (u - v)          (restitution eqn)
-            u m1 + v m2 == w m1 + x m2  (cons of momentum)
+            // TODO: just define this, and fix it where its generated
+            // note about the raw MTV: it is not defined which object it must be applied to to stop the collision.
+            // perform a test:
+            let dstadd = ((p1.pos + rawMtv) - p2.pos).len
+            //let dstsub = ((p1.pos - rawMtv) - p2.pos).len
             
-            => w = ( u (m1 - e m2) + v m2 (1 + e) ) / (m1 + m2)
-            &  x = ( v (m2 - e m1) + u m1 (1 + e) ) / (m1 + m2)
-             -- Thanks Wolfram Mathematica ;)
-             
-             for perpendicular, both objects keep their velocities
-        *)
-        
-        // pre-compute re-used values
-        let m1m2 = m1 + m2
-        let e1 = e + 1.
-        
-        // project velocities to the parallel direction
-        let u = p1.velocity * mtvNorm
-        let v = p2.velocity * mtvNorm
-        
-        // perform collision
-        let w = ( u * (m1 - e * m2) + v * m2 * e1 ) / m1m2
-        let x = ( v * (m2 - e * m1) + u * m1 * e1 ) / m1m2
-        
-        // reconstitute velocities
-        let finalv1 = mtvNorm * w + mtvNPerp * perpv1
-        let finalv2 = mtvNorm * x + mtvNPerp * perpv2
-        
-        // apply MTV to objects to un-intersect them. Just do it proportionally to masses because its easy.
-        let pos1 = p1.pos + (mtv * (m2 / m1m2))
-        let pos2 = p2.pos + (mtv * (m1 / m1m2))
-        
-        let newP1 = { p1 with pos = pos1; velocity = finalv1 }
-        let newP2 = { p2 with pos = pos2; velocity = finalv2 }
-        
-        newP1, newP2
+            // add this mtv to p1, subtract it from p2
+            let mtv =
+                if dstadd > (p1.pos - p2.pos).len then
+                    rawMtv // we were further away when we added it to p1, so we should add it to p1. 
+                else
+                    -rawMtv // we got closer when we added! we need to flip it.
+            
+            match p2 with
+            | ImmovablePObj _ -> // one mass is infinite (the second one), so we have a simpler case for the collision
+                p1, p2 // TODO
+            | _ ->
+                // two finite masses, standard collision case.
+            
+                let m1 = p1.mass
+                let m2 = p2.mass
+                
+                // this is of course, not correct, you cannot assign an `e` to an individual surface/object, but it's good enough.
+                // https://gamedev.net/forums/topic/321575-coefficients-of-restitution-and-friction/3070963/
+                let e = p1.restitutionCoeff * p2.restitutionCoeff
+                
+                // don't recompute these tons of times
+                let mtvNorm = mtv.norm
+                let mtvNPerp = mtvNorm.perp
+                
+                // find perpendicular velocities, which will be untouched
+                let perpv1 = p1.velocity * mtvNPerp
+                let perpv2 = p2.velocity * mtvNPerp
+                
+                (*
+                    for parallel to MTV direction (where u, v, w, x are VELOCITIES):
+                    u  v
+                    -> ->
+                    w  x
+                    
+                    x - w == e (u - v)          (restitution eqn)
+                    u m1 + v m2 == w m1 + x m2  (cons of momentum)
+                    
+                    => w = ( u (m1 - e m2) + v m2 (1 + e) ) / (m1 + m2)
+                    &  x = ( v (m2 - e m1) + u m1 (1 + e) ) / (m1 + m2)
+                     -- Thanks Wolfram Mathematica ;)
+                     
+                     for perpendicular, both objects keep their velocities
+                *)
+                
+                // pre-compute re-used values
+                let m1m2 = m1 + m2
+                let e1 = e + 1.
+                
+                // project velocities to the parallel direction
+                let u = p1.velocity * mtvNorm
+                let v = p2.velocity * mtvNorm
+                
+                // perform collision
+                let w = ( u * (m1 - e * m2) + v * m2 * e1 ) / m1m2
+                let x = ( v * (m2 - e * m1) + u * m1 * e1 ) / m1m2
+                
+                // reconstitute velocities
+                let finalv1 = mtvNorm * w + mtvNPerp * perpv1
+                let finalv2 = mtvNorm * x + mtvNPerp * perpv2
+                
+                // apply MTV to objects to un-intersect them. Just do it proportionally to masses because its easy.
+                let pos1 = p1.pos + (mtv * (m2 / m1m2))
+                let pos2 = p2.pos - (mtv * (m1 / m1m2))
+                
+                let newP1 = { p1 with pos = pos1; velocity = finalv1 }
+                let newP2 = { p2 with pos = pos2; velocity = finalv2 }
+                
+                newP1, newP2

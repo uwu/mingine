@@ -65,10 +65,14 @@
 					border: "1px solid black"
 				},
 				collide: true,
-				mass: Infinity,//1,
+				mass: 2,//1,
 				angVelocity: 0.75,
 				angle: 0.85,
 				pos: mg.v(1, 0.75),
+                
+                forces: [
+	                mg.forceModels.spring(7, mg.v(1, 0.75), mg.vo()),
+                ],
                 
                 eventHandlers: [
 	                ([type, event, gObj]) => {

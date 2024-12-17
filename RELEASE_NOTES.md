@@ -1,3 +1,7 @@
+### pending
+- Work around compiler bug introducing NaNs
+- Make collision HUGELY better
+
 ### 1.1.2
 - Fix circles having a moment of inertia of 0
 - Optimize core vector operations, integrator checks & compiled output (SWC)

@@ -55,7 +55,7 @@ type EngineWrap =
      mutable gObjMountedCache: DoubleDict<WrappedGObj, HTMLElement>
 
      // used both for the collision api and for the actual algo
-     mutable collisionCache: Dictionary<WrappedGObj, WrappedGObj HashSet>
+     mutable collisionCache: Dictionary<WrappedGObj, Dictionary<WrappedGObj, bool>>
      queryCollision: WrappedGObj -> WrappedGObj -> bool
      
      // these caches are internal only.
@@ -138,7 +138,7 @@ let collideAllObjects engine _ =
             if engine.collisionCache.ContainsKey obj
             then engine.collisionCache[obj]
             else
-                let h = HashSet()
+                let h = Dictionary()
                 engine.collisionCache.Add(obj, h)
                 h
         
@@ -146,14 +146,16 @@ let collideAllObjects engine _ =
         
         for obj2 in engine.scene.objects |> Seq.except [|obj|] do
             // only one collision per pair of objects
-            if not (engine.collisionCache.ContainsKey obj2 && engine.collisionCache[obj2].Contains obj)
+            if not (engine.collisionCache.ContainsKey obj2 && engine.collisionCache[obj2].ContainsKey obj)
             then
-                ignore <| set.Add obj2
+                set.Add(obj2, false)
                 
                 if engine.collisionCache.ContainsKey obj2
-                then ignore <| engine.collisionCache[obj2].Add obj
+                then engine.collisionCache[obj2].Add(obj, false)
                 else
-                    engine.collisionCache.Add(obj2, HashSet([|obj|]))
+                    let d = Dictionary()
+                    d.Add(obj, false)
+                    engine.collisionCache.Add(obj2, d)
                 
                 match Collision.collideObjs obj.o.collider obj.o.physicsObj obj2.o.collider obj2.o.physicsObj with
                 | None -> ()
@@ -164,6 +166,10 @@ let collideAllObjects engine _ =
                             obj2.o.collider obj2.o.physicsObj
                     
                     collisions.Add (mtv.len, resolved1, resolved2, obj2)
+                    
+                    // set collision cache value to true! this value is only used for queryCollision.
+                    set[obj2] <- true
+                    engine.collisionCache[obj2][obj] <- true
         
         // why do we use the smallest possible collision? idrk ask 2022 me -- sink 2024
         // size of mtv, self phys obj, other phys obj, other wrappedgobj
@@ -177,61 +183,6 @@ let collideAllObjects engine _ =
             
             obj.o <- { obj.o with physicsObj = newo1 }
             wo2.o <- { wo2.o with physicsObj = newo2 }
-    
-    (*let objects =
-        engine.scene.objects
-        |> Seq.choose (fun o ->
-            let worldCollisions =
-                engine.scene.worldColliders
-                |> Seq.choose (fun c2 ->
-                    Collision.collideColliders o.o.collider c2 o.o.physicsObj.pos o.o.physicsObj.angle vecOrigin 0.<_>
-                    |> Option.map Collision.resolveMTV
-                    )
-            
-            let collisions =
-                engine.scene.objects
-                |> Seq.except [|o|]
-                |> Seq.choose (fun o2 ->
-                            match Collision.collideObjs o.o.collider o.o.physicsObj o2.o.collider o2.o.physicsObj with
-                            | None -> None
-                            | Some rawMtv ->
-                                match engine.collisionCache.TryGetValue o with
-                                | true, list -> engine.collisionCache[o] <- o2::list
-                                | _ -> engine.collisionCache[o] <- [o2]
-                                
-                                if (abs o2.o.physicsObj.mass) = (infinity * 1.<_>)
-                                then Some rawMtv // prevent (NaN, NaN)
-                                else Some (rawMtv * (o2.o.physicsObj.mass / (o2.o.physicsObj.mass + o.o.physicsObj.mass)))
-                            )
-                |> Seq.append worldCollisions
-                |> Seq.toArray
-
-            if collisions.Length = 0 then
-                None
-            else
-                Some (
-                    o,
-                    collisions
-                    |> Collections.Array.reduce Vec2<_>.lenMin
-                )
-            )
-
-    // mutability bad but also itd be more comfy :skull:
-    for obj, v in objects do
-        // reflect velocity along our axis
-        // https://math.stackexchange.com/a/13263
-        let d = obj.o.physicsObj.velocity * 1.<_>
-        let n = v.norm
-        let r = d - ((d * n) * 2.) * n
-        
-        obj.o <-
-            {obj.o with
-                physicsObj =
-                    {obj.o.physicsObj with
-                        velocity = r * 1.<_> * obj.o.physicsObj.restitutionCoeff
-                        pos =
-                            obj.o.physicsObj.pos
-                            + (Vec2.map Units.floatToTyped v)}}*)
 
 let runPhysicsTick engine timeStep =
     // EWWWW MUTABILITY
@@ -283,8 +234,11 @@ let createEngine scene =
          frameEventCache = []
          
          queryCollision = (fun o1 o2 ->
-             (this.collisionCache.ContainsKey o1 && (this.collisionCache[o1].Contains o2))
-             || (this.collisionCache.ContainsKey o2 && (this.collisionCache[o2].Contains o1)))
+             let exists1 = this.collisionCache.ContainsKey o1
+             if not exists1 then false
+             else
+                 let exists2, collided = this.collisionCache[o1].TryGetValue o2
+                 exists2 && collided)
 
          mount = (fun elem ->
              for eventName in eventNames do
