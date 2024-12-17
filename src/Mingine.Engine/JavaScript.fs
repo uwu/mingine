@@ -187,7 +187,8 @@ let createRect obj =
          y = obj?height / 2.<_>}
 
     obj?collider <- if obj?collide then
-                        RectCollider(bl, -bl)
+                        // compiler bug, isn't invoking the overload
+                        RectCollider(bl, Vec2.map (~-) bl)
                     else
                         NullCollider
 
